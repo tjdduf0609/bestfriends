@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  Modal,
+} from "@/components";
 
 
 export default function DiaryDetailPage({
@@ -14,10 +17,13 @@ export default function DiaryDetailPage({
 
   const [isEditing, setIsEditing] = useState(false);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [editTitle, setEditTitle] = useState("");
 
   const [editContent, setEditContent] = useState("");
 
+  
 
 
   useEffect(() => {
@@ -120,13 +126,6 @@ export default function DiaryDetailPage({
 
   const deleteDiary = () => {
 
-    const confirmDelete =
-      confirm("정말 삭제할까요?");
-
-
-    if (!confirmDelete) return;
-
-
     const savedDiaries =
       localStorage.getItem("diaries");
 
@@ -153,31 +152,29 @@ export default function DiaryDetailPage({
     window.location.href = "/diary";
 
   };
-
-
-
-
+  
   // 로딩
 
-  if (!diary) {
+if (!diary) {
 
-    return (
+  return (
 
-      <main className="min-h-screen bg-[#F7F8FA] p-6">
+    <main className="min-h-screen bg-[#F7F8FA] p-6">
 
-        <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md">
 
-          <p className="text-gray-500">
-            기록을 불러오는 중...
-          </p>
+        <p className="text-gray-500">
+          기록을 불러오는 중...
+        </p>
 
-        </div>
+      </div>
 
-      </main>
 
-    );
+    </main>
 
-  }
+  );
+}
+
 
 
 
@@ -329,20 +326,19 @@ export default function DiaryDetailPage({
 
 
 
-                <button
-                  onClick={deleteDiary}
-                  className="
-                    flex-1
-                    rounded-xl
-                    bg-black
-                    py-3
-                    font-bold
-                    text-white
-                  "
-                >
-                  삭제하기
-                </button>
-
+             <button
+                onClick={() => setShowDeleteModal(true)}
+                className="
+                  flex-1
+                 rounded-xl
+                 bg-black
+                 py-3
+                 font-bold
+                  text-white
+               "
+             >
+               삭제하기
+              </button>
 
               </div>
 
@@ -355,6 +351,13 @@ export default function DiaryDetailPage({
 
         </section>
 
+        <Modal
+          open={showDeleteModal}
+          title="일기를 삭제할까요?"
+          description="삭제한 기록은 다시 복구할 수 없어요."
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={deleteDiary}
+        />
 
       </div>
 

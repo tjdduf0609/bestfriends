@@ -1,14 +1,22 @@
 "use client";
 
+import {
+  PageHeader,
+  Button,
+  Card,
+  Input,
+  Textarea,
+} from "@/components";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 export default function DiaryPage() {
   const [writer, setWriter] = useState("주우성");  
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [diaries, setDiaries] = useState<any[]>([]);
 
-const saveDiary = () => {
+const saveDiary = async () => {
 
   if (!title || !content) {
     alert("제목과 내용을 입력해주세요.");
@@ -16,26 +24,30 @@ const saveDiary = () => {
   }
 
 
-  const newDiary = {
-    id: Date.now(),
-    writer,
-    title,
-    content,
-    date: new Date().toLocaleDateString("ko-KR"),
-  };
+  const { data, error } = await supabase
+    .from("diaries")
+    .insert([
+      {
+        writer,
+        title,
+        content,
+      },
+    ])
+    .select()
+    .single();
 
 
-  const updatedDiaries = [
-      newDiary,
-      ...diaries,
-  ];
+  if (error) {
+    console.log("SUPABASE ERROR:", JSON.stringify(error));
+    alert("저장에 실패했습니다.");
+    return;
+  }
 
-setDiaries(updatedDiaries);
 
-localStorage.setItem(
-  "diaries",
-  JSON.stringify(updatedDiaries)
-);
+  setDiaries([
+    data,
+    ...diaries,
+  ]);
 
 
   setTitle("");
@@ -45,11 +57,28 @@ localStorage.setItem(
 
    useEffect(() => {
 
-      const savedDiaries = localStorage.getItem("diaries");
+  const loadDiaries = async () => {
 
-       if (savedDiaries) {
-       setDiaries(JSON.parse(savedDiaries));
-       }
+    const { data, error } = await supabase
+      .from("diaries")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      });
+
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+
+    setDiaries(data || []);
+
+  };
+
+
+  loadDiaries();
 
 }, []);
 
@@ -58,14 +87,11 @@ localStorage.setItem(
 
       <div className="mx-auto max-w-md">
 
-        <h1 className="text-3xl font-bold">
-          📖 교환 일기
-        </h1>
-
-
-        <p className="mt-2 text-gray-500">
-          오늘 하루의 이야기를 남겨 보세요.
-        </p>
+        <PageHeader
+         emoji="📖"
+         title="교환 일기"
+         description="오늘 하루의 이야기를 남겨 보세요."
+        />
 
 {/* 작성자 선택 */}
 
@@ -198,16 +224,8 @@ localStorage.setItem(
 
   {diaries.length === 0 ? (
 
-    <div
-      className="
-        rounded-xl
-        border
-        border-gray-200
-        bg-white
-        p-6
-        text-center
-      "
-    >
+    <Card>
+
       <p className="text-gray-500">
         아직 작성된 교환일기가 없어요.
       </p>
@@ -216,7 +234,7 @@ localStorage.setItem(
         첫 번째 이야기를 남겨보세요 ✨
       </p>
 
-    </div>
+    </Card>
 
   ) : (
 
@@ -249,7 +267,7 @@ localStorage.setItem(
 
 
             <span className="text-xs text-gray-400">
-              {diary.date}
+              {diary.created_at}
             </span>
 
           </div>
