@@ -11,10 +11,22 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+const workTypes = [
+  "영화",
+  "드라마",
+  "책",
+  "게임",
+  "공연",
+] as const;
+
+type WorkType = "영화" | "드라마" | "책" | "게임" | "공연";
+
+const WORK_TYPES: WorkType[] = ["영화", "드라마", "책", "게임", "공연"];
+
 interface Work {
   id: string;
   title: string;
-  type: string;
+  type: WorkType;
   rating: number;
   review: string;
   cover_url: string | null;
@@ -22,7 +34,7 @@ interface Work {
 }
 
 export default function GalleryPage() {
-  const [type, setType] = useState("영화");
+  const [type, setType] = useState<WorkType>("영화");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
   const [title, setTitle] = useState("");
@@ -47,13 +59,13 @@ export default function GalleryPage() {
   const saveWork = async () => {
     if (!title.trim()) return;
 
-    const { error } = await supabase.from("works").insert({
-      title,
-      type,
-      rating,
-      review,
-      cover_url: coverUrl || null,
-    });
+   const { error } = await supabase.from("works").insert({
+  title,
+  type,
+  rating,
+  review,
+  cover_url: coverUrl || null,
+});
 
     if (error) {
       console.log("작품 저장 실패", error.message);
@@ -134,7 +146,7 @@ export default function GalleryPage() {
         <div className="mt-5">
           <p className="mb-3 font-semibold">작품 종류</p>
           <div className="flex flex-wrap gap-2">
-            {["영화", "드라마", "책", "게임", "공연"].map((item) => (
+            {WORK_TYPES.map((item) => (
               <button
                 key={item}
                 onClick={() => setType(item)}

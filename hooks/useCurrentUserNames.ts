@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabase";
 
 export interface UserNames {
   myName: string;
@@ -21,7 +21,7 @@ export function useCurrentUserNames() {
         return;
       }
 
-      const supabase = createClient();
+    
       const { data: settings } = await supabase
         .from('settings')
         .select('name1, name2')

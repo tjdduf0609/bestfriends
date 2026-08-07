@@ -12,6 +12,15 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 
+const workTypes = [
+  "영화",
+  "드라마",
+  "책",
+  "게임",
+  "공연",
+] as const;
+
+type WorkType = typeof workTypes[number];
 
 type Work = {
   id: string;
@@ -23,10 +32,11 @@ type Work = {
 };
 
 
+
 export default function GalleryPage() {
 
   const [title, setTitle] = useState("");
-  const [type, setType] = useState("영화");
+ const [type, setType] = useState<string>("영화");
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState("");
 
@@ -251,13 +261,7 @@ export default function GalleryPage() {
 
 
               {
-                [
-                  "영화",
-                  "드라마",
-                  "책",
-                  "게임",
-                  "공연",
-                ].map(item=>(
+  workTypes.map(item => (
 
 
                   <button

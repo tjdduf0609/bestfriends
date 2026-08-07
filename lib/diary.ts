@@ -1,6 +1,4 @@
-// lib/diary.ts
-import { createClient } from '@/lib/supabase/client'; // 이미 쓰고 계신 클라이언트 경로에 맞게 조정
-
+import { supabase } from "@/lib/supabase";
 export interface DiaryEntry {
   id: string;
   title: string;
@@ -15,7 +13,6 @@ export async function getDiaryEntriesWithLockStatus(
   myName: string,
   partnerName: string
 ): Promise<{ myEntries: DiaryEntry[]; partnerEntries: DiaryEntry[] }> {
-  const supabase = createClient();
 
   // 내가 쓴 개수
   const { count: myCount } = await supabase

@@ -4,10 +4,10 @@ import { DiaryInteractions } from "@/components/DiaryInteractions";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { PageHeader, Card } from "@/components";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 
-export default function DiaryPage() {
+function DiaryContent() {
   const searchParams = useSearchParams();
   const editParam = searchParams.get("edit");
 
@@ -319,5 +319,13 @@ export default function DiaryPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function DiaryPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DiaryContent />
+    </Suspense>
   );
 }

@@ -27,7 +27,10 @@ export default function DiaryDetailPage({
   const [diary, setDiary] = useState<Diary | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
+  const [title, setTitle] = useState("");
+const [content, setContent] = useState("");
+const [writer, setWriter] = useState("");
+const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
 

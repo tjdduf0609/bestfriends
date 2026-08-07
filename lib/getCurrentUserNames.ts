@@ -1,5 +1,4 @@
-// lib/getCurrentUserNames.ts
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabase";
 
 export interface UserNames {
   myName: string;
@@ -7,7 +6,7 @@ export interface UserNames {
 }
 
 export async function getCurrentUserNames(): Promise<UserNames | null> {
-  const supabase = createClient();
+
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
