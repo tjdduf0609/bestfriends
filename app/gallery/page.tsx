@@ -11,17 +11,11 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const workTypes = [
-  "영화",
-  "드라마",
-  "책",
-  "게임",
-  "공연",
-] as const;
-
 type WorkType = "영화" | "드라마" | "책" | "게임" | "공연";
 
 const WORK_TYPES: WorkType[] = ["영화", "드라마", "책", "게임", "공연"];
+
+const cardStyle = "rounded-3xl bg-surface shadow-sm";
 
 interface Work {
   id: string;
@@ -59,13 +53,13 @@ export default function GalleryPage() {
   const saveWork = async () => {
     if (!title.trim()) return;
 
-   const { error } = await supabase.from("works").insert({
-  title,
-  type,
-  rating,
-  review,
-  cover_url: coverUrl || null,
-});
+    const { error } = await supabase.from("works").insert({
+      title,
+      type,
+      rating,
+      review,
+      cover_url: coverUrl || null,
+    });
 
     if (error) {
       console.log("작품 저장 실패", error.message);
@@ -96,13 +90,11 @@ export default function GalleryPage() {
     loadWorks();
   }, []);
 
-  // ▼ 평균 별점 계산
   const averageRating =
     works.length > 0
       ? (works.reduce((sum, w) => sum + Number(w.rating), 0) / works.length).toFixed(1)
       : "0.0";
 
-  // ▼ 별점을 별 이모지 문자열로 변환 (0.5단위 반영)
   const renderStars = (value: number) => {
     const full = Math.floor(value);
     const hasHalf = value - full >= 0.5;
@@ -110,7 +102,7 @@ export default function GalleryPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] p-6 pb-24">
+    <main className="min-h-screen bg-bg p-6 pb-24">
       <div className="mx-auto max-w-md">
         <PageHeader
           emoji="🎬"
@@ -119,15 +111,15 @@ export default function GalleryPage() {
         />
 
         <div className="mt-2 flex items-center justify-between">
-          <p className="text-gray-500">함께 본 영화, 드라마, 책을 기록해 보세요.</p>
+          <p className="text-text-muted">함께 본 영화, 드라마, 책을 기록해 보세요.</p>
           {works.length > 0 && (
-            <span className="whitespace-nowrap rounded-full bg-white px-3 py-1 text-sm font-bold border border-gray-200">
+            <span className="whitespace-nowrap rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-text">
               평균 {renderStars(Number(averageRating))}
             </span>
           )}
         </div>
 
-        <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5">
+        <div className={`${cardStyle} mt-8 p-5`}>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -135,7 +127,7 @@ export default function GalleryPage() {
           />
         </div>
 
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-5">
+        <div className={`${cardStyle} mt-4 p-5`}>
           <Input
             value={coverUrl}
             onChange={(e) => setCoverUrl(e.target.value)}
@@ -144,14 +136,14 @@ export default function GalleryPage() {
         </div>
 
         <div className="mt-5">
-          <p className="mb-3 font-semibold">작품 종류</p>
+          <p className="mb-3 font-semibold text-text">작품 종류</p>
           <div className="flex flex-wrap gap-2">
             {WORK_TYPES.map((item) => (
               <button
                 key={item}
                 onClick={() => setType(item)}
-                className={`rounded-full px-4 py-2 border transition ${
-                  type === item ? "bg-black text-white" : "bg-white"
+                className={`rounded-full px-4 py-2 transition ${
+                  type === item ? "bg-primary text-white" : "bg-primary-soft text-text"
                 }`}
               >
                 {item}
@@ -161,7 +153,7 @@ export default function GalleryPage() {
         </div>
 
         <div className="mt-6">
-          <p className="mb-3 font-semibold">별점 {rating.toFixed(1)}</p>
+          <p className="mb-3 font-semibold text-text">별점 {rating.toFixed(1)}</p>
           <input
             type="range"
             min={0}
@@ -169,13 +161,13 @@ export default function GalleryPage() {
             step={0.5}
             value={rating}
             onChange={(e) => setRating(Number(e.target.value))}
-            className="w-full accent-black"
+            className="w-full accent-primary"
           />
           <p className="mt-2 text-2xl">{renderStars(rating)}</p>
         </div>
 
         <div className="mt-6">
-          <p className="mb-3 font-semibold">한줄평</p>
+          <p className="mb-3 font-semibold text-text">한줄평</p>
           <Textarea
             value={review}
             onChange={(e) => setReview(e.target.value)}
@@ -187,20 +179,20 @@ export default function GalleryPage() {
 
         <div className="mt-10 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">지난 기록</h2>
+            <h2 className="text-xl font-bold text-text">지난 기록</h2>
             <div className="flex gap-2 text-sm">
               <button
                 onClick={() => setView("grid")}
-                className={`rounded-full px-3 py-1 border ${
-                  view === "grid" ? "bg-black text-white" : "bg-white"
+                className={`rounded-full px-3 py-1 ${
+                  view === "grid" ? "bg-primary text-white" : "bg-primary-soft text-text"
                 }`}
               >
                 갤러리
               </button>
               <button
                 onClick={() => setView("list")}
-                className={`rounded-full px-3 py-1 border ${
-                  view === "list" ? "bg-black text-white" : "bg-white"
+                className={`rounded-full px-3 py-1 ${
+                  view === "list" ? "bg-primary text-white" : "bg-primary-soft text-text"
                 }`}
               >
                 목록
@@ -215,14 +207,10 @@ export default function GalleryPage() {
               description="함께 본 작품을 기록해 보세요."
             />
           ) : view === "grid" ? (
-            // ▼ 갤러리 그리드 뷰
             <div className="grid grid-cols-2 gap-3">
               {works.map((work) => (
-                <div
-                  key={work.id}
-                  className="overflow-hidden rounded-xl border border-gray-200 bg-white"
-                >
-                  <div className="aspect-[2/3] w-full bg-gray-100">
+                <div key={work.id} className={`${cardStyle} overflow-hidden`}>
+                  <div className="aspect-[2/3] w-full bg-primary-soft">
                     {work.cover_url ? (
                       <img
                         src={work.cover_url}
@@ -236,8 +224,8 @@ export default function GalleryPage() {
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="truncate font-bold text-sm">{work.title}</h3>
-                    <p className="mt-1 text-xs text-gray-400">
+                    <h3 className="truncate font-bold text-sm text-text">{work.title}</h3>
+                    <p className="mt-1 text-xs text-text-muted">
                       {renderStars(Number(work.rating))}
                     </p>
                   </div>
@@ -245,26 +233,25 @@ export default function GalleryPage() {
               ))}
             </div>
           ) : (
-            // ▼ 기존 목록 뷰
             works.map((work) => (
               <Card key={work.id}>
                 <div className="flex justify-between">
-                  <h3 className="font-bold">{work.title}</h3>
-                  <span>{work.type}</span>
+                  <h3 className="font-bold text-text">{work.title}</h3>
+                  <span className="text-text-muted">{work.type}</span>
                 </div>
 
                 <p className="mt-2">{renderStars(Number(work.rating))}</p>
 
-                <p className="mt-2 text-gray-600">{work.review}</p>
+                <p className="mt-2 text-text-muted">{work.review}</p>
 
-                <p className="mt-4 text-sm text-gray-400">
+                <p className="mt-4 text-sm text-text-muted">
                   {new Date(work.created_at).toLocaleDateString()}
                 </p>
 
                 <div className="mt-3 flex justify-end">
                   <button
                     onClick={() => deleteWork(work.id)}
-                    className="rounded-lg bg-black px-4 py-2 text-sm text-white"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
                   >
                     삭제
                   </button>

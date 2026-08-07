@@ -7,6 +7,8 @@ import { PageHeader, Card } from "@/components";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 
+const cardStyle = "rounded-3xl bg-surface shadow-sm";
+
 function DiaryContent() {
   const searchParams = useSearchParams();
   const editParam = searchParams.get("edit");
@@ -20,7 +22,6 @@ function DiaryContent() {
   const [diaries, setDiaries] = useState<any[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
 
-  // ▼ 추가: "나는 누구인지" 로컬 저장
   const [myName, setMyName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ function DiaryContent() {
     const { data, error } = await supabase
       .from("profileSettings")
       .select("*")
-      .limit(1)
+      .eq("id", 1)
       .maybeSingle();
 
     if (error) {
@@ -47,12 +48,9 @@ function DiaryContent() {
     }
 
     if (data) {
-      setPerson1(data.person1);
-      setPerson2(data.person2);
-
-      if (!writer) {
-        setWriter(data.person1);
-      }
+      setPerson1(data.person1_name);
+      setPerson2(data.person2_name);
+      if (!writer) setWriter(data.person1_name);
     }
   };
 
@@ -152,10 +150,8 @@ function DiaryContent() {
     loadEditDiary();
   }, [editParam]);
 
-  // ▼ 추가: 개수 기반 잠금 계산
-  // myName이 작성한 개수만큼만 상대방 글이 "오래된 순"으로 열림
   const diariesWithLock = (() => {
-    if (!myName) return diaries.map((d) => ({ ...d, unlocked: true })); // 아직 선택 전이면 임시로 다 보여줌
+    if (!myName) return diaries.map((d) => ({ ...d, unlocked: true }));
 
     const myCount = diaries.filter((d) => d.author === myName).length;
 
@@ -177,7 +173,6 @@ function DiaryContent() {
     });
   })();
 
-  // ▼ 추가: 오전/오후 포함 날짜 포맷
   const formatDiaryDate = (isoString: string) => {
     return new Date(isoString).toLocaleString("ko-KR", {
       month: "long",
@@ -189,7 +184,7 @@ function DiaryContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] p-6 pb-24">
+    <main className="min-h-screen bg-bg p-6 pb-24">
       <div className="mx-auto max-w-md">
         <PageHeader
           emoji="📖"
@@ -197,19 +192,18 @@ function DiaryContent() {
           description="오늘 하루의 이야기를 남겨 보세요."
         />
 
-        {/* ▼ 추가: 나는 누구인지 선택 (한 번만 하면 로컬에 저장됨) */}
         {person1 && person2 && (
           <div className="mt-6">
-            <p className="mb-3 text-sm font-bold">나는 누구인가요?</p>
+            <p className="mb-3 text-sm font-bold text-text">나는 누구인가요?</p>
             <div className="flex gap-3">
               {[person1, person2].map((name) => (
                 <button
                   key={name}
                   onClick={() => selectMyName(name)}
-                  className={`rounded-full border px-5 py-2 text-sm font-bold transition ${
+                  className={`rounded-full px-5 py-2 text-sm font-bold transition ${
                     myName === name
-                      ? "bg-black text-white"
-                      : "bg-white text-black"
+                      ? "bg-primary text-white"
+                      : "bg-primary-soft text-text"
                   }`}
                 >
                   {name}
@@ -219,42 +213,38 @@ function DiaryContent() {
           </div>
         )}
 
-        {/* 제목 */}
-        <div className="mt-8 rounded-xl bg-white p-5 border border-gray-200">
+        <div className={`${cardStyle} mt-8 p-5`}>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-lg outline-none"
+            className="w-full bg-transparent text-lg text-text outline-none"
             placeholder="제목"
           />
         </div>
 
-        {/* 내용 */}
-        <div className="mt-4 rounded-xl bg-white p-5 border border-gray-200">
+        <div className={`${cardStyle} mt-4 p-5`}>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="h-60 w-full resize-none outline-none"
+            className="h-60 w-full resize-none bg-transparent text-text outline-none"
             placeholder="오늘 있었던 일을 적어 보세요."
           />
         </div>
 
-        {/* 작성 */}
         <button
           onClick={saveDiary}
-          className="mt-6 w-full rounded-xl bg-black py-5 font-bold text-white"
+          className="mt-6 w-full rounded-xl bg-primary py-5 font-bold text-white transition active:scale-[0.98]"
         >
           {editId ? "기록 수정하기" : "기록 저장하기"}
         </button>
 
-        {/* 지난 기록 */}
         <section className="mt-10">
-          <h2 className="mb-4 text-xl font-bold">지난 기록</h2>
+          <h2 className="mb-4 text-xl font-bold text-text">지난 기록</h2>
 
           {diariesWithLock.length === 0 ? (
             <Card>
-              <p className="text-gray-500">아직 작성된 교환일기가 없어요.</p>
-              <p className="mt-2 text-sm text-gray-400">
+              <p className="text-text-muted">아직 작성된 교환일기가 없어요.</p>
+              <p className="mt-2 text-sm text-text-muted">
                 첫 번째 이야기를 남겨보세요 ✨
               </p>
             </Card>
@@ -262,37 +252,34 @@ function DiaryContent() {
             <div className="space-y-4">
               {diariesWithLock.map((diary) =>
                 !diary.unlocked ? (
-                  // ▼ 추가: 잠긴 카드
                   <div
                     key={diary.id}
-                    className="rounded-xl border border-gray-200 bg-gray-100 p-5 text-center"
+                    className={`${cardStyle} bg-primary-soft p-5 text-center`}
                   >
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-text-muted">
                       🔒 아직 잠겨있어요. 일기를 먼저 써보세요!
                     </p>
                   </div>
                 ) : (
                   <div
                     key={diary.id}
-                    className="rounded-xl border border-gray-200 bg-white p-5 transition hover:bg-gray-50"
+                    className={`${cardStyle} p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
                   >
                     <Link href={`/diary/${diary.id}`}>
                       <div className="flex items-start justify-between">
-                        <h3 className="text-lg font-bold">📖 {diary.title}</h3>
-                        <span className="text-xs text-gray-400">
+                        <h3 className="text-lg font-bold text-text">📖 {diary.title}</h3>
+                        <span className="text-xs text-text-muted">
                           {formatDiaryDate(diary.created_at)}
                         </span>
                       </div>
 
-                      <p className="mt-3 text-sm font-medium text-gray-600">
+                      <p className="mt-3 text-sm font-medium text-text-muted">
                         👤 {diary.author}
                       </p>
 
-                      <p className="mt-4 line-clamp-2 text-sm text-gray-500">
+                      <p className="mt-4 line-clamp-2 text-sm text-text-muted">
                         {diary.content}
                       </p>
-
-                      
                     </Link>
 
                     <DiaryInteractions diaryId={diary.id} myName={myName} />
@@ -300,13 +287,13 @@ function DiaryContent() {
                     <div className="mt-5 flex justify-end gap-2">
                       <button
                         onClick={() => editDiary(diary)}
-                        className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600"
+                        className="rounded-lg bg-primary-soft px-4 py-2 text-sm text-text"
                       >
                         수정
                       </button>
                       <button
                         onClick={() => deleteDiary(diary.id)}
-                        className="rounded-lg bg-black px-4 py-2 text-sm text-white"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
                       >
                         삭제
                       </button>
