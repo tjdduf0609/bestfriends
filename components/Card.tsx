@@ -3,17 +3,14 @@ type CardProps = {
   className?: string;
 };
 
-export default function Card({
-  children,
-  className = "",
-}: CardProps) {
+export default function Card({ children, className = "" }: CardProps) {
   return (
     <div
       className={`
         rounded-xl
         border
-        border-gray-200
-        bg-white
+        border-border
+        bg-surface
         p-5
         ${className}
       `}

@@ -22,8 +22,8 @@ export default function Button({
 
         ${
           variant === "primary"
-            ? "bg-black text-white"
-            : "border border-gray-200 bg-white"
+            ? "bg-primary text-white"
+            : "border border-border bg-surface text-text"
         }
       `}
     >

@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Modal,
-} from "@/components";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
+
+type Diary = {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  created_at: string;
+};
 
 
 export default function DiaryDetailPage({
@@ -13,176 +22,126 @@ export default function DiaryDetailPage({
   params: Promise<{ id: string }>;
 }) {
 
-  const [diary, setDiary] = useState<any>(null);
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const [editTitle, setEditTitle] = useState("");
-
-  const [editContent, setEditContent] = useState("");
-
-  
+  const searchParams = useSearchParams();
+  const editParam = searchParams.get("edit");
+  const [diary, setDiary] = useState<Diary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
 
   useEffect(() => {
 
-    const loadDiary = async () => {
+  async function loadDiary() {
 
-      const { id } = await params;
+    const { id } = await params;
 
 
-      const savedDiaries =
-        localStorage.getItem("diaries");
+    const { data, error } = await supabase
+      .from("diaries")
+      .select("*")
+      .eq("id", id)
+      .single();
 
 
-      if (!savedDiaries) return;
+    if (error) {
+      console.log("Supabase error:", error);
+      setLoading(false);
+      return;
+    }
 
 
-      const diaries = JSON.parse(savedDiaries);
+    setDiary(data);
+    setLoading(false);
 
+  }
 
-      const foundDiary = diaries.find(
-        (item: any) =>
-          item.id.toString() === id
-      );
 
+  loadDiary();
 
-      if (!foundDiary) return;
+}, [params]);
 
+  const loadEditDiary = async () => {
 
-      setDiary(foundDiary);
+  if(!editParam){
+    return;
+  }
 
-      setEditTitle(foundDiary.title);
 
-      setEditContent(foundDiary.content);
+  const { data, error } = await supabase
+    .from("diaries")
+    .select("*")
+    .eq("id", editParam)
+    .single();
 
-    };
 
+  if(error){
+    console.log(error.message);
+    return;
+  }
 
-    loadDiary();
 
-  }, [params]);
+  setEditId(data.id);
+  setTitle(data.title);
+  setContent(data.content);
+  setWriter(data.author);
 
+  window.history.replaceState(
+  null,
+  "",
+  "/diary"
+);
 
+};
 
+  const deleteDiary = async () => {
 
-  // 수정 저장
-
-  const updateDiary = () => {
-
-    const savedDiaries =
-      localStorage.getItem("diaries");
-
-
-    if (!savedDiaries) return;
-
-
-    const diaries = JSON.parse(savedDiaries);
-
-
-    const updatedDiaries = diaries.map(
-      (item: any) => {
-
-        if (item.id === diary.id) {
-
-          return {
-            ...item,
-            title: editTitle,
-            content: editContent,
-          };
-
-        }
-
-
-        return item;
-
-      }
-    );
-
-
-    localStorage.setItem(
-      "diaries",
-      JSON.stringify(updatedDiaries)
-    );
-
-
-    setDiary({
-      ...diary,
-      title: editTitle,
-      content: editContent,
-    });
-
-
-    setIsEditing(false);
-
-  };
-
-
-
-
-  // 삭제
-
-  const deleteDiary = () => {
-
-    const savedDiaries =
-      localStorage.getItem("diaries");
-
-
-    if (!savedDiaries) return;
-
-
-    const diaries = JSON.parse(savedDiaries);
-
-
-    const updatedDiaries =
-      diaries.filter(
-        (item: any) =>
-          item.id !== diary.id
-      );
-
-
-    localStorage.setItem(
-      "diaries",
-      JSON.stringify(updatedDiaries)
-    );
-
-
-    window.location.href = "/diary";
-
-  };
-  
-  // 로딩
-
-if (!diary) {
-
-  return (
-
-    <main className="min-h-screen bg-[#F7F8FA] p-6">
-
-      <div className="mx-auto max-w-md">
-
-        <p className="text-gray-500">
-          기록을 불러오는 중...
-        </p>
-
-      </div>
-
-
-    </main>
-
+  const confirmDelete = confirm(
+    "이 기록을 삭제할까요?"
   );
-}
+
+  if (!confirmDelete) {
+    return;
+  }
 
 
+  const { error } = await supabase
+    .from("diaries")
+    .delete()
+    .eq("id", diary?.id);
+
+
+  if(error){
+    console.log(error.message);
+    return;
+  }
+
+
+  router.push("/diary");
+
+};
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        불러오는 중...
+      </div>
+    );
+  }
+
+
+
+  if (!diary) {
+    return (
+      <div className="p-6">
+        일기를 찾을 수 없습니다.
+      </div>
+    );
+  }
 
 
 
   return (
-
-    <main className="min-h-screen bg-[#F7F8FA] p-6 pb-24">
-
+    <main className="min-h-screen bg-[#F7F8FA] p-6">
 
       <div className="mx-auto max-w-md">
 
@@ -191,179 +150,88 @@ if (!diary) {
           href="/diary"
           className="text-sm text-gray-500"
         >
-          ← 교환일기로 돌아가기
+          ← 목록으로
         </Link>
 
 
 
-        <section
+        <div
           className="
-            mt-6
-            rounded-xl
-            border
-            border-gray-200
-            bg-white
-            p-6
+          mt-6
+          rounded-xl
+          bg-white
+          p-6
+          border
           "
         >
 
-
-          {isEditing ? (
-
-            <div>
-
-
-              <input
-                value={editTitle}
-                onChange={(e) =>
-                  setEditTitle(e.target.value)
-                }
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  p-4
-                  text-lg
-                  outline-none
-                "
-              />
+          <h1 className="text-2xl font-bold">
+            {diary.title}
+          </h1>
 
 
-
-              <textarea
-                value={editContent}
-                onChange={(e) =>
-                  setEditContent(e.target.value)
-                }
-                className="
-                  mt-4
-                  h-60
-                  w-full
-                  resize-none
-                  rounded-xl
-                  border
-                  p-4
-                  outline-none
-                "
-              />
+          <div className="mt-2 text-sm text-gray-400">
+            {diary.author}
+          </div>
 
 
-
-              <button
-                onClick={updateDiary}
-                className="
-                  mt-4
-                  w-full
-                  rounded-xl
-                  bg-black
-                  py-4
-                  font-bold
-                  text-white
-                "
-              >
-                수정 완료
-              </button>
+          <div className="mt-6 whitespace-pre-wrap text-gray-700">
+            {diary.content}
+          </div>
 
 
-            </div>
+          <div className="mt-6 text-xs text-gray-400">
+            {
+              new Date(
+                diary.created_at
+              ).toLocaleDateString()
+            }
+          </div>
+
+          <div className="mt-8 flex gap-3">
 
 
-          ) : (
+  <Link
+    href={`/diary?edit=${diary.id}`}
+    className="
+      flex-1
+      rounded-xl
+      border
+      border-gray-200
+      py-3
+      text-center
+      text-sm
+      font-bold
+    "
+  >
+    수정
+  </Link>
 
 
-            <>
-
-              <h1 className="text-2xl font-bold">
-                📖 {diary.title}
-              </h1>
-
-
-
-              <div className="mt-4 text-sm text-gray-500">
-
-                <p>
-                  👤 {diary.writer}
-                </p>
-
-
-                <p>
-                  📅 {diary.date}
-                </p>
-
-              </div>
+  <button
+    onClick={deleteDiary}
+    className="
+      flex-1
+      rounded-xl
+      bg-black
+      py-3
+      text-sm
+      font-bold
+      text-white
+    "
+  >
+    삭제
+  </button>
 
 
-
-              <p
-                className="
-                  mt-8
-                  whitespace-pre-wrap
-                  text-gray-700
-                "
-              >
-                {diary.content}
-              </p>
+</div>
 
 
+        </div>
 
-              <div className="mt-8 flex gap-3">
-
-
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="
-                    flex-1
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-white
-                    py-3
-                    font-bold
-                  "
-                >
-                  수정하기
-                </button>
-
-
-
-             <button
-                onClick={() => setShowDeleteModal(true)}
-                className="
-                  flex-1
-                 rounded-xl
-                 bg-black
-                 py-3
-                 font-bold
-                  text-white
-               "
-             >
-               삭제하기
-              </button>
-
-              </div>
-
-
-            </>
-
-
-          )}
-
-
-        </section>
-
-        <Modal
-          open={showDeleteModal}
-          title="일기를 삭제할까요?"
-          description="삭제한 기록은 다시 복구할 수 없어요."
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={deleteDiary}
-        />
 
       </div>
 
-
     </main>
-
   );
-
 }

@@ -1,10 +1,6 @@
-type TextareaProps =
-  React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export default function Textarea({
-  className = "",
-  ...props
-}: TextareaProps) {
+export default function Textarea({ className = "", ...props }: TextareaProps) {
   return (
     <textarea
       className={`
@@ -13,12 +9,13 @@ export default function Textarea({
         resize-none
         rounded-xl
         border
-        border-gray-200
-        bg-white
+        border-border
+        bg-surface
         p-4
+        text-text
         outline-none
         focus:ring-2
-        focus:ring-gray-200
+        focus:ring-primary-soft
         ${className}
       `}
       {...props}

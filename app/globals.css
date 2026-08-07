@@ -1,26 +1,113 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius-card: 16px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ===== 로지 ===== */
+[data-theme="rosy"] {
+  --color-primary: #FF6F91;
+  --color-primary-soft: #FFE1E9;
+  --color-bg: #FFF9FA;
+  --color-surface: #FFFFFF;
+  --color-text: #2B2126;
+  --color-text-muted: #8A7A80;
+  --color-border: #F5DFE4;
+}
+[data-theme="rosy"].dark {
+  --color-primary: #FF89A6;
+  --color-primary-soft: #4A2530;
+  --color-bg: #1E1518;
+  --color-surface: #2A1F23;
+  --color-text: #FBEFF2;
+  --color-text-muted: #B79AA2;
+  --color-border: #3D2B30;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ===== 라벤더 ===== */
+[data-theme="lavender"] {
+  --color-primary: #8E7FE0;
+  --color-primary-soft: #E6E1FA;
+  --color-bg: #FAF9FF;
+  --color-surface: #FFFFFF;
+  --color-text: #241F33;
+  --color-text-muted: #837AA0;
+  --color-border: #E4E0F5;
+}
+[data-theme="lavender"].dark {
+  --color-primary: #A79AEF;
+  --color-primary-soft: #362D57;
+  --color-bg: #18151F;
+  --color-surface: #221D2E;
+  --color-text: #F1EEFA;
+  --color-text-muted: #A79EC2;
+  --color-border: #332C45;
+}
+
+/* ===== 민트 ===== */
+[data-theme="mint"] {
+  --color-primary: #2EC4B6;
+  --color-primary-soft: #D8F5F1;
+  --color-bg: #F7FDFC;
+  --color-surface: #FFFFFF;
+  --color-text: #1E2B29;
+  --color-text-muted: #6F8B87;
+  --color-border: #D8EFEC;
+}
+[data-theme="mint"].dark {
+  --color-primary: #4FDDCE;
+  --color-primary-soft: #1C4842;
+  --color-bg: #131C1B;
+  --color-surface: #1B2624;
+  --color-text: #EAF7F5;
+  --color-text-muted: #8FB0AB;
+  --color-border: #263935;
+}
+
+/* ===== 피치 ===== */
+[data-theme="peach"] {
+  --color-primary: #FF9466;
+  --color-primary-soft: #FFE7D9;
+  --color-bg: #FFFAF7;
+  --color-surface: #FFFFFF;
+  --color-text: #2E2420;
+  --color-text-muted: #8F7A6E;
+  --color-border: #F5E2D6;
+}
+[data-theme="peach"].dark {
+  --color-primary: #FFAB82;
+  --color-primary-soft: #4A2F20;
+  --color-bg: #1E1712;
+  --color-surface: #291F19;
+  --color-text: #FBF0E9;
+  --color-text-muted: #C0A292;
+  --color-border: #3D2E24;
+}
+
+/* ===== 스카이 ===== */
+[data-theme="sky"] {
+  --color-primary: #4FA9E8;
+  --color-primary-soft: #DCEEFC;
+  --color-bg: #F7FBFF;
+  --color-surface: #FFFFFF;
+  --color-text: #1F2733;
+  --color-text-muted: #6E8199;
+  --color-border: #D9E9F7;
+}
+[data-theme="sky"].dark {
+  --color-primary: #74C0FF;
+  --color-primary-soft: #1F3C54;
+  --color-bg: #121820;
+  --color-surface: #1A222C;
+  --color-text: #EDF4FB;
+  --color-text-muted: #94AAC2;
+  --color-border: #26323F;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
