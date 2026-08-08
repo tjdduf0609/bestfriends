@@ -2,72 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import { Home, BookOpen, Clapperboard, Music, Calendar, Settings, LucideIcon } from "lucide-react";
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav
-      className="
-      fixed
-      bottom-0
-      left-0
-      right-0
-      mx-auto
-      flex
-      max-w-md
-      justify-around
-      border-t
-      border-border
-      bg-surface
-      px-4
-      py-3
-      shadow-lg
-      "
-    >
+    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex max-w-md justify-around border-t border-border bg-surface px-4 py-3 shadow-lg">
       <Link href="/">
-        <NavItem emoji="🏠" text="홈" active={pathname === "/"} />
+        <NavItem icon={Home} text="홈" active={pathname === "/"} />
       </Link>
-
       <Link href="/diary">
-        <NavItem emoji="📖" text="일기" active={pathname.startsWith("/diary")} />
+        <NavItem icon={BookOpen} text="일기" active={pathname.startsWith("/diary")} />
       </Link>
-
       <Link href="/gallery">
-        <NavItem emoji="🎬" text="작품" active={pathname.startsWith("/gallery")} />
+        <NavItem icon={Clapperboard} text="작품" active={pathname.startsWith("/gallery")} />
       </Link>
-
       <Link href="/music">
-        <NavItem emoji="🎵" text="음악" active={pathname.startsWith("/music")} />
+        <NavItem icon={Music} text="음악" active={pathname.startsWith("/music")} />
       </Link>
-
       <Link href="/calendar">
-        <NavItem emoji="📅" text="기록" active={pathname.startsWith("/calendar")} />
+        <NavItem icon={Calendar} text="기록" active={pathname.startsWith("/calendar")} />
       </Link>
-
       <Link href="/settings">
-        <NavItem emoji="⚙️" text="설정" active={pathname.startsWith("/settings")} />
+        <NavItem icon={Settings} text="설정" active={pathname.startsWith("/settings")} />
       </Link>
     </nav>
   );
 }
 
 function NavItem({
-  emoji,
+  icon: Icon,
   text,
   active = false,
 }: {
-  emoji: string;
+  icon: LucideIcon;
   text: string;
   active?: boolean;
 }) {
   return (
     <button
-      className={`flex flex-col items-center text-xs transition ${
+      className={`flex flex-col items-center gap-0.5 text-xs transition ${
         active ? "text-primary" : "text-text-muted"
       }`}
     >
-      <span className="text-xl">{emoji}</span>
+      <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
       <span className="font-bold">{text}</span>
     </button>
   );

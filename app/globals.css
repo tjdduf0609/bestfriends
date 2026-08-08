@@ -2,7 +2,17 @@
 
 :root {
   --radius-card: 16px;
+
+  /* ▼ 추가: 테마가 아직 안 정해졌을 때의 기본값 (로지 테마와 동일) */
+  --color-primary: #FF6F91;
+  --color-primary-soft: #FFE1E9;
+  --color-bg: #FFF9FA;
+  --color-surface: #FFFFFF;
+  --color-text: #2B2126;
+  --color-text-muted: #8A7A80;
+  --color-border: #F5DFE4;
 }
+
 
 /* ===== 로지 ===== */
 [data-theme="rosy"] {

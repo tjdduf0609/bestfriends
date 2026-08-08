@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Heart, MessageCircle } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -121,25 +122,22 @@ export function DiaryInteractions({
   };
 
   return (
-    <div
-      className="mt-4 border-t border-gray-100 pt-3"
-      onClick={(e) => e.stopPropagation()} // Link 안에 있어도 이동 안 되게
-    >
+    <div className="mt-4 border-t border-border pt-3" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center gap-4">
         <button
           onClick={toggleLike}
           className={`flex items-center gap-1 text-sm font-medium transition ${
-            likedByMe ? "text-red-500" : "text-gray-400"
+            likedByMe ? "text-primary" : "text-text-muted"
           }`}
         >
-          {likedByMe ? "❤️" : "🤍"} {likeCount}
+          <Heart className="h-4 w-4" fill={likedByMe ? "currentColor" : "none"} /> {likeCount}
         </button>
 
         <button
           onClick={() => setShowComments((v) => !v)}
-          className="text-sm font-medium text-gray-400"
+          className="flex items-center gap-1 text-sm font-medium text-text-muted"
         >
-          💬 {comments.length}
+          <MessageCircle className="h-4 w-4" /> {comments.length}
         </button>
       </div>
 
@@ -148,17 +146,14 @@ export function DiaryInteractions({
           {comments.map((c) => (
             <div
               key={c.id}
-              className="flex items-start justify-between rounded-lg bg-gray-50 px-3 py-2"
+              className="flex items-start justify-between rounded-lg bg-primary-soft/40 px-3 py-2"
             >
               <div>
-                <p className="text-xs font-bold text-gray-500">{c.author}</p>
-                <p className="text-sm">{c.content}</p>
+                <p className="text-xs font-bold text-text-muted">{c.author}</p>
+                <p className="text-sm text-text">{c.content}</p>
               </div>
               {c.author === myName && (
-                <button
-                  onClick={() => deleteComment(c.id)}
-                  className="text-xs text-gray-300"
-                >
+                <button onClick={() => deleteComment(c.id)} className="text-xs text-text-muted">
                   삭제
                 </button>
               )}
@@ -171,11 +166,11 @@ export function DiaryInteractions({
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
               placeholder="댓글을 남겨보세요"
-              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none"
+              className="flex-1 rounded-lg bg-primary-soft/40 px-3 py-2 text-sm text-text outline-none"
             />
             <button
               onClick={submitComment}
-              className="rounded-lg bg-black px-4 py-2 text-sm text-white"
+              className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
             >
               등록
             </button>

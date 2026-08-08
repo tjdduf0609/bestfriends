@@ -132,7 +132,6 @@ export default function ArchivePage() {
 
           {items.length === 0 ? (
             <EmptyState
-              emoji="🖼️"
               title="아직 아카이브가 비어있어요"
               description="함께 찍은 사진이나 영상을 올려보세요."
             />

@@ -1,5 +1,6 @@
 "use client";
 
+import { Menu, Search, Bell, Palette, Pencil, Heart, CalendarHeart, Unlock, Cloud, BookOpen, Clapperboard, Archive } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -27,7 +28,7 @@ function calculateDDay(startDate: string) {
 
 // ▼ 카드 전체 톤: 테두리 없이 그림자만, 큰 라운드값, 호버 시 살짝 떠오름
 const cardStyle =
-  "rounded-3xl bg-surface shadow-sm transition-all duration-300";
+  "rounded-3xl bg-white shadow-sm transition-all duration-300";
 
 // ▼ 아이콘 전용 파스텔 박스
 const iconBoxStyle =
@@ -106,8 +107,6 @@ export default function Home() {
           </Link>
           <p className="font-bold text-text">{coupleName}</p>
           <div className="flex gap-3 text-lg">
-            <span className="text-text-muted">🔍</span>
-            <span className="text-text-muted">🔔</span>
           </div>
         </div>
 
@@ -119,13 +118,12 @@ export default function Home() {
           }}
         >
           <div className="flex items-center justify-between">
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold">🎨 배경</span>
-            <button
-              onClick={() => setEditingMessage((v) => !v)}
-              className="rounded-full bg-white/20 p-2"
-            >
-              ✏️
-            </button>
+            <span className="flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-bold">
+  <Palette className="h-3.5 w-3.5" /> 배경
+</span>
+<button onClick={() => setEditingMessage((v) => !v)} className="rounded-full bg-white/20 p-2">
+  <Pencil className="h-4 w-4" />
+</button>
           </div>
 
           {editingMessage ? (
@@ -152,7 +150,7 @@ export default function Home() {
         </div>
 
         {/* 커플 프로필: 사진 ♡ 사진 / 닉네임  닉네임 */}
-        <div className={`${cardStyle} mt-8 p-8`}>
+        <div className={`${cardStyle} mt-4 p-8`}>
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
               <div className="mx-auto h-20 w-20 overflow-hidden rounded-full bg-primary-soft">
@@ -169,7 +167,7 @@ export default function Home() {
               <p className="mt-3 font-semibold text-text">{settings?.person1_name}</p>
             </div>
 
-            <div className="text-4xl text-primary animate-pulse">♡</div>
+            <Heart className="h-9 w-9 text-primary animate-pulse" fill="currentColor" />
 
             <div className="text-center">
               <div className="mx-auto h-20 w-20 overflow-hidden rounded-full bg-primary-soft">
@@ -191,7 +189,7 @@ export default function Home() {
         {/* D-DAY / 열린 일기 / 동기화 — 아이콘 박스 + 정사각형 구조 */}
         <div className="mt-3 grid grid-cols-3 gap-2">
           <div className={`${cardStyle} p-4 text-center`}>
-            <div className={iconBoxStyle}>📅</div>
+            <div className={iconBoxStyle}><CalendarHeart className="h-6 w-6 text-primary" /></div>
             <p className="mt-3 text-xs text-text-muted">함께한 시간</p>
             <p className="mt-1 text-lg font-bold text-text">
               {daysSinceMeeting !== null ? `D+${daysSinceMeeting}` : "-"}
@@ -199,13 +197,13 @@ export default function Home() {
           </div>
 
           <div className={`${cardStyle} p-4 text-center`}>
-            <div className={iconBoxStyle}>🔓</div>
+            <div className={iconBoxStyle}><Unlock className="h-6 w-6 text-primary" /></div>
             <p className="mt-3 text-xs text-text-muted">열린 일기</p>
             <p className="mt-1 text-lg font-bold text-text">{openedCount}쌍</p>
           </div>
 
           <div className={`${cardStyle} p-4 text-center`}>
-            <div className={iconBoxStyle}>☁️</div>
+            <div className={iconBoxStyle}><Cloud className="h-6 w-6 text-primary" /></div>
             <p className="mt-3 text-xs text-text-muted">동기화</p>
             <p className="mt-1 text-lg font-bold text-text">{connected ? "연결됨" : "끊김"}</p>
           </div>
@@ -216,19 +214,19 @@ export default function Home() {
           <h2 className="mb-3 font-bold text-text">기록 둘러보기</h2>
           <div className="grid grid-cols-3 gap-2">
             <Link href="/diary" className={`${cardStyle} group p-4 text-center`}>
-              <div className={iconBoxStyle}>📖</div>
+              <div className={iconBoxStyle}><BookOpen className="h-6 w-6 text-primary" /></div>
               <p className="mt-3 text-sm font-bold text-text">서재</p>
               <p className="text-xs text-text-muted">{counts.diary}개</p>
             </Link>
 
             <Link href="/gallery" className={`${cardStyle} group p-4 text-center`}>
-              <div className={iconBoxStyle}>🎬</div>
+              <div className={iconBoxStyle}><Clapperboard className="h-6 w-6 text-primary" /></div>
               <p className="mt-3 text-sm font-bold text-text">시네마</p>
               <p className="text-xs text-text-muted">{counts.gallery}개</p>
             </Link>
 
             <Link href="/archive" className={`${cardStyle} group p-4 text-center`}>
-              <div className={iconBoxStyle}>🗂️</div>
+              <div className={iconBoxStyle}><Archive className="h-6 w-6 text-primary" /></div>
               <p className="mt-3 text-sm font-bold text-text">아카이브</p>
               <p className="text-xs text-text-muted">{counts.archive}개</p>
             </Link>

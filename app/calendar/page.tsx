@@ -9,25 +9,29 @@ import {
   isSameDay,
   addMonths,
   subMonths,
+  getDay,
 } from "date-fns";
-
 import { ko } from "date-fns/locale";
-
 import { supabase } from "@/lib/supabase";
+import { BackHeader } from "@/components/BackHeader";
+import { Heart, Star, BookOpen, Clapperboard, Music, Plus } from "lucide-react";
 
-import { PageHeader, Card, Input, Button } from "@/components";
+const cardStyle = "rounded-3xl bg-surface shadow-sm";
+type RepeatType = "none" | "weekly" | "yearly";
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [records, setRecords] = useState<any[]>([]);
+  const [anniversaries, setAnniversaries] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  // ▼ 추가: 등록 폼 상태
   const [showForm, setShowForm] = useState(false);
   const [formKind, setFormKind] = useState<"anniversary" | "event">("anniversary");
   const [formTitle, setFormTitle] = useState("");
   const [formDate, setFormDate] = useState("");
-  const [formRepeat, setFormRepeat] = useState(true);
+  const [formRepeat, setFormRepeat] = useState<RepeatType>("yearly");
+  const [editingItem, setEditingItem] = useState<{ table: "anniversaries" | "events"; id: string } | null>(null);
 
   useEffect(() => {
     loadRecords();
@@ -37,231 +41,282 @@ export default function CalendarPage() {
     const { data: diaries } = await supabase.from("diaries").select("*");
     const { data: works } = await supabase.from("works").select("*");
     const { data: music } = await supabase.from("music").select("*");
-    const { data: anniversaries } = await supabase.from("anniversaries").select("*");
-    const { data: events } = await supabase.from("events").select("*");
+    const { data: anniversaryData } = await supabase.from("anniversaries").select("*");
+    const { data: eventData } = await supabase.from("events").select("*");
+
+    setAnniversaries(anniversaryData ?? []);
+    setEvents(eventData ?? []);
 
     const year = currentMonth.getFullYear();
 
-    // ▼ 추가: 반복 기념일/일정을 "이번에 보고 있는 달의 연도" 기준으로 날짜 재계산
-    const resolveOccurrence = (item: any) => {
+    const resolveOccurrences = (item: any): Date[] => {
       const original = new Date(item.date);
-      if (item.repeat_yearly) {
-        return new Date(year, original.getMonth(), original.getDate());
+
+      if (item.repeat_type === "yearly") {
+        return [new Date(year, original.getMonth(), original.getDate())];
       }
-      return original;
+
+      if (item.repeat_type === "weekly") {
+        const targetWeekday = getDay(original);
+        const monthDays = eachDayOfInterval({
+          start: startOfMonth(currentMonth),
+          end: endOfMonth(currentMonth),
+        });
+        return monthDays.filter((d) => getDay(d) === targetWeekday && d >= original);
+      }
+
+      return [original];
     };
 
     const merged = [
-      ...(diaries ?? []).map((item) => ({
-        ...item,
-        type: "diary",
-        occursOn: new Date(item.created_at),
-      })),
-
-      ...(works ?? []).map((item) => ({
-        ...item,
-        type: "work",
-        occursOn: new Date(item.created_at),
-      })),
-
-      ...(music ?? []).map((item) => ({
-        ...item,
-        type: "music",
-        occursOn: new Date(item.created_at),
-      })),
-
-      ...(anniversaries ?? []).map((item) => ({
-        ...item,
-        type: "anniversary",
-        occursOn: resolveOccurrence(item),
-      })),
-
-      ...(events ?? []).map((item) => ({
-        ...item,
-        type: "event",
-        occursOn: resolveOccurrence(item),
-      })),
+      ...(diaries ?? []).map((item) => ({ ...item, type: "diary", occursOn: new Date(item.created_at) })),
+      ...(works ?? []).map((item) => ({ ...item, type: "work", occursOn: new Date(item.created_at) })),
+      ...(music ?? []).map((item) => ({ ...item, type: "music", occursOn: new Date(item.created_at) })),
+      ...(anniversaryData ?? []).flatMap((item) =>
+        resolveOccurrences(item).map((occursOn) => ({ ...item, type: "anniversary", occursOn }))
+      ),
+      ...(eventData ?? []).flatMap((item) =>
+        resolveOccurrences(item).map((occursOn) => ({ ...item, type: "event", occursOn }))
+      ),
     ];
 
     setRecords(merged);
   }
 
-  async function saveNewItem() {
+  function startEdit(table: "anniversaries" | "events", item: any) {
+    setFormKind(table === "anniversaries" ? "anniversary" : "event");
+    setFormTitle(item.title);
+    setFormDate(item.date);
+    setFormRepeat(item.repeat_type ?? "none");
+    setEditingItem({ table, id: item.id });
+    setShowForm(true);
+  }
+
+  function resetForm() {
+    setFormTitle("");
+    setFormDate("");
+    setFormRepeat("yearly");
+    setEditingItem(null);
+    setShowForm(false);
+  }
+
+  async function saveItem() {
     if (!formTitle.trim() || !formDate) {
       alert("제목과 날짜를 입력해주세요.");
       return;
     }
 
     const table = formKind === "anniversary" ? "anniversaries" : "events";
+    const payload = { title: formTitle, date: formDate, repeat_type: formRepeat };
 
-    const { error } = await supabase.from(table).insert({
-      title: formTitle,
-      date: formDate,
-      repeat_yearly: formRepeat,
-    });
+    const { error } = editingItem
+      ? await supabase.from(table).update(payload).eq("id", editingItem.id)
+      : await supabase.from(table).insert(payload);
 
     if (error) {
       console.log("저장 실패", error.message);
       return;
     }
 
-    setFormTitle("");
-    setFormDate("");
-    setFormRepeat(true);
-    setShowForm(false);
+    resetForm();
     await loadRecords();
   }
 
-  const days = eachDayOfInterval({
-    start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth),
-  });
+  async function deleteItem(table: "anniversaries" | "events", id: string) {
+    if (!confirm("삭제할까요?")) return;
+    await supabase.from(table).delete().eq("id", id);
+    if (editingItem?.id === id) resetForm();
+    await loadRecords();
+  }
+
+  const repeatLabel = (t: RepeatType) =>
+    t === "yearly" ? "매년 반복" : t === "weekly" ? "매주 반복" : "반복 안 함";
+
+  const days = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
 
   function hasRecord(day: Date) {
-    return records.some((record) => isSameDay(record.occursOn, day));
+    return records.some((r) => r.type !== "anniversary" && r.type !== "event" && isSameDay(r.occursOn, day));
+  }
+  function anniversaryOnDay(day: Date) {
+    return records.some((r) => r.type === "anniversary" && isSameDay(r.occursOn, day));
+  }
+  function eventOnDay(day: Date) {
+    return records.some((r) => r.type === "event" && isSameDay(r.occursOn, day));
   }
 
-  // ▼ 추가: 기념일/일정 여부만 따로 체크 (점 색깔 다르게 표시하려고)
-  function hasAnniversaryOrEvent(day: Date) {
-    return records.some(
-      (record) =>
-        (record.type === "anniversary" || record.type === "event") &&
-        isSameDay(record.occursOn, day)
-    );
-  }
-
-  const selectedRecords = records.filter(
-    (record) => selectedDate && isSameDay(record.occursOn, selectedDate)
-  );
+  const selectedRecords = records.filter((r) => selectedDate && isSameDay(r.occursOn, selectedDate));
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] p-6 pb-24">
+    <main className="min-h-screen bg-bg p-6 pb-24">
       <div className="mx-auto max-w-md">
-        <PageHeader emoji="📅" title="달력" description="우리의 기록을 한눈에 봐요" />
+        <BackHeader title="달력" />
 
-        <div className="mt-8 rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
-          <div className="flex justify-between items-center mb-5">
-            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>◀</button>
-            <h2 className="font-bold text-lg">
-              {format(currentMonth, "yyyy년 M월", { locale: ko })}
-            </h2>
-            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>▶</button>
-          </div>
-
-          <div className="grid grid-cols-7 text-center gap-2">
-            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-              <div key={day} className="text-xs text-gray-400">
-                {day}
-              </div>
-            ))}
-
-            {days.map((day) => (
-              <button
-                key={day.toString()}
-                onClick={() => setSelectedDate(day)}
-                className={`h-10 rounded-full text-sm relative ${
-                  selectedDate && isSameDay(day, selectedDate)
-                    ? "bg-pink-400 text-white"
-                    : ""
-                }`}
-              >
-                {format(day, "d")}
-
-                {/* ▼ 추가: 기념일/일정은 다른 색 점으로 구분 */}
-                {hasAnniversaryOrEvent(day) && (
-                  <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] text-pink-500">
-                    ★
-                  </span>
-                )}
-
-                {hasRecord(day) && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px]">
-                    ●
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ▼ 추가: 기념일/일정 등록 토글 버튼 */}
         <button
-          onClick={() => setShowForm((v) => !v)}
-          className="mt-4 w-full rounded-xl border border-dashed border-gray-300 py-3 text-sm font-bold text-gray-500"
+          onClick={() => (showForm ? resetForm() : setShowForm(true))}
+          className="mb-3 ml-auto flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold"
+          style={{ backgroundColor: "var(--color-primary)", color: "#ffffff" }}
         >
-          {showForm ? "닫기" : "+ 기념일 · 일정 등록하기"}
+          {showForm ? "닫기" : (<><Plus className="h-3.5 w-3.5" /> 추가</>)}
         </button>
 
         {showForm && (
-          <div className="mt-3 rounded-2xl bg-white border border-gray-100 p-5 shadow-sm space-y-4">
+          <div className={`${cardStyle} mb-4 space-y-3 p-5`}>
             <div className="flex gap-2">
               <button
                 onClick={() => setFormKind("anniversary")}
-                className={`flex-1 rounded-full py-2 text-sm font-bold border ${
-                  formKind === "anniversary" ? "bg-black text-white" : "bg-white"
+                className={`flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold ${
+                  formKind === "anniversary" ? "bg-primary text-white" : "bg-primary-soft text-text"
                 }`}
               >
-                💖 기념일
+                <Heart className="h-4 w-4" fill={formKind === "anniversary" ? "currentColor" : "none"} /> 기념일
               </button>
               <button
                 onClick={() => setFormKind("event")}
-                className={`flex-1 rounded-full py-2 text-sm font-bold border ${
-                  formKind === "event" ? "bg-black text-white" : "bg-white"
+                className={`flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold ${
+                  formKind === "event" ? "bg-primary text-white" : "bg-primary-soft text-text"
                 }`}
               >
-                🗓️ 일정
+                <Star className="h-4 w-4" fill={formKind === "event" ? "currentColor" : "none"} /> 일정
               </button>
             </div>
 
-            <Input
+            <input
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
-              placeholder={formKind === "anniversary" ? "예: 100일, 1주년" : "예: OO 생일"}
+              placeholder={formKind === "anniversary" ? "예: 100일, 1주년" : "예: OO 생일, 데이트"}
+              className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
             />
 
             <input
               type="date"
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 p-3 text-sm"
+              className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
             />
 
-            <label className="flex items-center gap-2 text-sm text-gray-500">
-              <input
-                type="checkbox"
-                checked={formRepeat}
-                onChange={(e) => setFormRepeat(e.target.checked)}
-              />
-              매년 반복
-            </label>
+            <div className="flex gap-2">
+              {(["none", "weekly", "yearly"] as RepeatType[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setFormRepeat(t)}
+                  className={`flex-1 rounded-full py-2 text-xs font-bold ${
+                    formRepeat === t ? "bg-primary text-white" : "bg-primary-soft text-text"
+                  }`}
+                >
+                  {repeatLabel(t)}
+                </button>
+              ))}
+            </div>
 
-            <Button onClick={saveNewItem}>등록하기</Button>
+            <button
+              onClick={saveItem}
+              className="w-full rounded-xl py-3 font-bold"
+              style={{ backgroundColor: "var(--color-primary)", color: "#ffffff" }}
+            >
+              {editingItem ? "수정 저장하기" : "등록하기"}
+            </button>
           </div>
         )}
 
-        {selectedDate && (
-          <section className="mt-8">
-            <h2 className="mb-4 font-bold text-xl">
-              {format(selectedDate, "M월 d일 기록")}
-            </h2>
+        <div className={`${cardStyle} p-5`}>
+          <div className="mb-4 flex items-center justify-between">
+            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="text-text">◀</button>
+            <h2 className="font-bold text-text">{format(currentMonth, "yyyy년 M월", { locale: ko })}</h2>
+            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="text-text">▶</button>
+          </div>
 
-            {selectedRecords.length === 0 ? (
-              <Card>기록이 없습니다.</Card>
-            ) : (
-              <div className="space-y-3">
-                {selectedRecords.map((record) => (
-                  <Card key={`${record.type}-${record.id}`}>
-                    {record.type === "diary" && <>📖 {record.title}</>}
-                    {record.type === "work" && <>🎬 {record.title}</>}
-                    {record.type === "music" && <>🎵 {record.title}</>}
-                    {record.type === "anniversary" && <>💖 {record.title}</>}
-                    {record.type === "event" && <>🎂 {record.title}</>}
-                  </Card>
-                ))}
+          <div className="grid grid-cols-7 gap-2 text-center">
+            {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
+              <div key={d} className="text-xs text-text-muted">{d}</div>
+            ))}
+
+            {days.map((day) => (
+              <button
+                key={day.toString()}
+                onClick={() => setSelectedDate(day)}
+                className={`relative h-10 rounded-full text-sm ${
+                  selectedDate && isSameDay(day, selectedDate) ? "bg-primary text-white" : "text-text"
+                }`}
+              >
+                {format(day, "d")}
+                {anniversaryOnDay(day) && (
+                  <Heart className="absolute top-0.5 left-1/2 h-2 w-2 -translate-x-1/2 text-primary" fill="currentColor" />
+                )}
+                {eventOnDay(day) && (
+                  <Star className="absolute top-0.5 right-1 h-2 w-2 text-primary" fill="currentColor" />
+                )}
+                {hasRecord(day) && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[6px]">●</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedDate && selectedRecords.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {selectedRecords.map((record) => (
+              <div
+                key={`${record.type}-${record.id}-${record.occursOn}`}
+                className={`${cardStyle} flex items-center gap-2 p-4 text-sm text-text`}
+              >
+                {record.type === "diary" && <><BookOpen className="h-4 w-4 text-primary" /> {record.title}</>}
+                {record.type === "work" && <><Clapperboard className="h-4 w-4 text-primary" /> {record.title}</>}
+                {record.type === "music" && <><Music className="h-4 w-4 text-primary" /> {record.title}</>}
+                {record.type === "anniversary" && <><Heart className="h-4 w-4 text-primary" fill="currentColor" /> {record.title}</>}
+                {record.type === "event" && <><Star className="h-4 w-4 text-primary" fill="currentColor" /> {record.title}</>}
               </div>
-            )}
-          </section>
+            ))}
+          </div>
         )}
+
+        <section className="mt-8">
+          <h2 className="mb-3 font-bold text-text">기념일</h2>
+          <div className="space-y-2">
+            {anniversaries.length === 0 ? (
+              <p className="text-sm text-text-muted">등록된 기념일이 없어요.</p>
+            ) : (
+              anniversaries.map((item) => (
+                <div key={item.id} className={`${cardStyle} flex items-center justify-between p-4`}>
+                  <button onClick={() => startEdit("anniversaries", item)} className="flex flex-1 items-center gap-3 text-left">
+                    <Heart className="h-4 w-4 text-primary" fill="currentColor" />
+                    <div>
+                      <p className="text-sm font-bold text-text">{item.title}</p>
+                      <p className="text-xs text-text-muted">
+                        {item.date} · {repeatLabel(item.repeat_type ?? "none")}
+                      </p>
+                    </div>
+                  </button>
+                  <button onClick={() => deleteItem("anniversaries", item.id)} className="text-xs text-text-muted">삭제</button>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <h2 className="mb-3 font-bold text-text">일정</h2>
+          <div className="space-y-2">
+            {events.length === 0 ? (
+              <p className="text-sm text-text-muted">등록된 일정이 없어요.</p>
+            ) : (
+              events.map((item) => (
+                <div key={item.id} className={`${cardStyle} flex items-center justify-between p-4`}>
+                  <button onClick={() => startEdit("events", item)} className="flex flex-1 items-center gap-3 text-left">
+                    <Star className="h-4 w-4 text-primary" fill="currentColor" />
+                    <div>
+                      <p className="text-sm font-bold text-text">{item.title}</p>
+                      <p className="text-xs text-text-muted">
+                        {item.date} · {repeatLabel(item.repeat_type ?? "none")}
+                      </p>
+                    </div>
+                  </button>
+                  <button onClick={() => deleteItem("events", item.id)} className="text-xs text-text-muted">삭제</button>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </div>
     </main>
   );
