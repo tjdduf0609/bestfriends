@@ -97,7 +97,7 @@ export default function ArchivePage() {
 
   return (
     <main className="min-h-screen bg-[#F7F8FA] p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <PageHeader
           emoji="🖼️"
           title="아카이브"

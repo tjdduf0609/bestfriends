@@ -95,7 +95,7 @@ function NewDiaryForm() {
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title={editId ? "일기 수정" : "오늘의 일기"} />
 
         {!editId && person1 && person2 && (

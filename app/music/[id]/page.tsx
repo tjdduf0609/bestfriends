@@ -59,7 +59,7 @@ export default function MusicDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title="음악 기록" />
 
         <div className={`${cardStyle} mt-4 overflow-hidden`}>
@@ -68,6 +68,7 @@ export default function MusicDetailPage({ params }: { params: Promise<{ id: stri
           <div className="p-6">
             <h1 className="text-2xl font-bold text-card">{music.title}</h1>
             <p className="mt-1 text-sm text-card-muted">{music.artist}</p>
+{music.author && <p className="mt-1 text-xs text-card-muted">{music.author}이 등록함</p>}
 
             {music.youtube_url && (
               <a
@@ -89,13 +90,23 @@ export default function MusicDetailPage({ params }: { params: Promise<{ id: stri
 
             <EntryInteractions type="music" entryId={music.id} myName={myName} />
 
+<div className="mt-6 flex gap-3">
+            <button
+                onClick={() => router.push(`/music/new?edit=${music.id}`)}
+                style={pillButtonStyle(false)}
+                className="flex-1 rounded-xl py-3 text-sm font-bold"
+              >
+                수정
+              </button>
+
             <button
               onClick={deleteMusic}
               style={pillButtonStyle(true)}
-              className="mt-6 w-full rounded-xl py-3 text-sm font-bold"
+              className="flex-1 rounded-xl py-3 text-sm font-bold"
             >
               삭제
             </button>
+          </div>
           </div>
         </div>
       </div>

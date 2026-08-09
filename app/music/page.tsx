@@ -6,7 +6,7 @@ import { BackHeader } from "@/components/BackHeader";
 import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/lib/supabase";
 import { pillButtonStyle } from "@/lib/pillButtonStyle";
-import { Music, Plus, Heart, MessageCircle } from "lucide-react";
+import { Music, Plus, Heart, MessageCircle, Search } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const cardStyle = "rounded-3xl bg-white shadow-sm";
@@ -21,6 +21,7 @@ export default function MusicPage() {
   const [musicList, setMusicList] = useState<any[]>([]);
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   async function loadMusic() {
     const { data, error } = await supabase
@@ -54,9 +55,13 @@ export default function MusicPage() {
     loadMusic();
   }, []);
 
+const filteredMusic = musicList.filter((m) =>
+  m.title.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title="음악" />
         <p className="mb-4 text-sm text-text-muted">함께 들은 노래</p>
 
@@ -68,16 +73,29 @@ export default function MusicPage() {
           <Plus className="h-4 w-4" /> 음악 추가
         </button>
 
+        <div className="relative mt-4">
+  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-card-muted" />
+  <input
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    placeholder="노래 제목 검색"
+    className="w-full rounded-full bg-primary-soft/40 py-2.5 pl-9 pr-4 text-sm text-text outline-none"
+  />
+</div>
+
+<section className="mt-4"></section>
+
         <section className="mt-8">
-          {musicList.length === 0 ? (
-            <EmptyState
-              icon={Music}
-              title="아직 음악이 없어요"
-              description="함께 들은 음악을 기록해 보세요."
-            />
-          ) : (
-            <div className="space-y-3">
-              {musicList.map((music) => {
+          {filteredMusic.length === 0 ? (
+  <EmptyState
+    icon={Music}
+    title={searchQuery ? "검색 결과가 없어요" : "아직 음악이 없어요"}
+    description={searchQuery ? "다른 제목으로 검색해보세요." : "함께 들은 음악을 기록해 보세요."}
+  />
+) : (
+  <div className="space-y-3">
+    {filteredMusic.map((music) => {
+      // ... 기존 카드 내용 그대로
                 const thumb = music.youtube_url ? getYoutubeThumbnail(music.youtube_url) : null;
                 return (
                   <div
@@ -97,6 +115,7 @@ export default function MusicPage() {
                     <div className="flex-1">
                       <h3 className="font-bold text-card">{music.title}</h3>
                       <p className="text-xs text-card-muted">{music.artist}</p>
+{music.author && <p className="text-[10px] text-card-muted">{music.author} 등록</p>}
                       <div className="mt-1 flex items-center gap-3 text-[10px] text-card-muted">
                         <span className="flex items-center gap-0.5">
                           <Heart className="h-3 w-3" /> {likeCounts[music.id] ?? 0}

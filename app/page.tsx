@@ -1,11 +1,12 @@
 "use client";
 
-import { CalendarDays, Pencil, Heart, CalendarHeart, Cloud, BookOpen, Clapperboard, Music } from "lucide-react";
+import { CalendarDays, Search, Bell, Pencil, Heart, CalendarHeart, Cloud, BookOpen, Clapperboard, Music } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { NotificationPanel } from "@/components/NotificationPanel";
 
 interface Settings {
   id: number;
@@ -44,6 +45,7 @@ export default function Home() {
   const [editingMessage, setEditingMessage] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const router = useRouter();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [nextEvent, setNextEvent] = useState<{
   title: string;
   date: string;
@@ -197,7 +199,7 @@ if (eventError) {
 
   return (
     <main className="min-h-screen bg-bg pb-24">
-      <div className="mx-auto max-w-md p-4">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl p-4">
         {/* 상단 네비 */}
         <div className="flex items-center justify-between py-2">
           <Link href="/settings" className="text-xl">
@@ -206,6 +208,12 @@ if (eventError) {
           <p className="font-bold text-card-muted">{coupleName}</p>
           <div className="flex gap-3 text-lg">
           </div>
+          <div className="flex gap-3">
+  <Search className="h-5 w-5" />
+  <button onClick={() => setShowNotifications(true)}>
+    <Bell className="h-5 w-5" />
+  </button>
+</div>
         </div>
 
         {/* 커스텀 배경 배너 */}
@@ -345,7 +353,7 @@ if (eventError) {
         {/* 기록 둘러보기 — 기존에 마음에 들어하셨던 정사각형 구조 유지 */}
         <div className="mt-4">
           <h2 className="mb-3 font-bold text-card-muted">우리의 기록</h2>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 md:gap-4">
             <Link href="/diary" className={`${cardStyle} group p-4 text-center`}>
               <div className={iconBoxStyle}><BookOpen className="h-6 w-6 text-card-muted" /></div>
               <p className="mt-3 text-xs text-card-muted">일기</p>
@@ -368,6 +376,7 @@ if (eventError) {
       </div>
 
       <BottomNav />
+      {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
     </main>
   );
 }

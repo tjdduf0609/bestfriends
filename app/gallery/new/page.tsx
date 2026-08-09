@@ -31,38 +31,46 @@ function NewWorkForm() {
   const [coverUrl, setCoverUrl] = useState("");
   const [coverMode, setCoverMode] = useState<"url" | "upload">("url");
   const [uploading, setUploading] = useState(false);
+  const [myKey, setMyKey] = useState<"person1" | "person2" | null>(null);
+  const [myName, setMyName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!editId) return;
+    async function init() {
+      const name = localStorage.getItem("myName");
+      setMyName(name);
 
-    async function loadWork() {
-      const { data, error } = await supabase.from("works").select("*").eq("id", editId).single();
-      if (error) {
-        console.log(error.message);
-        return;
+      const { data } = await supabase.from("profileSettings").select("*").eq("id", 1).maybeSingle();
+      if (data && name) {
+        setMyKey(name === data.person1_name ? "person1" : name === data.person2_name ? "person2" : null);
       }
-      setTitle(data.title);
-      setType(data.type);
-      setRating(data.rating);
-      setReview(data.review ?? "");
-      setCoverUrl(data.cover_url ?? "");
-    }
 
-    loadWork();
+      if (editId) {
+        const { data: work, error } = await supabase.from("works").select("*").eq("id", editId).single();
+        if (error) {
+          console.log(error.message);
+          return;
+        }
+        setTitle(work.title);
+        setType(work.type);
+        setCoverUrl(work.cover_url ?? "");
+
+        const key = name === data?.person1_name ? "person1" : "person2";
+        setRating(work[`${key}_rating`] ?? 5);
+        setReview(work[`${key}_review`] ?? "");
+      }
+    }
+    init();
   }, [editId]);
 
   const uploadCoverFile = async (file: File) => {
     setUploading(true);
     const fileName = `${Date.now()}-${file.name}`;
-
     const { error } = await supabase.storage.from("covers").upload(fileName, file);
-
     if (error) {
       alert("업로드 실패: " + error.message);
       setUploading(false);
       return;
     }
-
     const { data } = supabase.storage.from("covers").getPublicUrl(fileName);
     setCoverUrl(data.publicUrl);
     setUploading(false);
@@ -70,8 +78,23 @@ function NewWorkForm() {
 
   const saveWork = async () => {
     if (!title.trim()) return;
+    if (!myKey) {
+      alert("먼저 '나는 누구인가요'를 선택해주세요 (일기 페이지에서 선택할 수 있어요).");
+      return;
+    }
 
-    const payload = { title, type, rating, review, cover_url: coverUrl || null };
+    const ratingField = `${myKey}_rating`;
+    const reviewField = `${myKey}_review`;
+
+    const payload: any = {
+      title,
+      type,
+      cover_url: coverUrl || null,
+      [ratingField]: rating,
+      [reviewField]: review,
+    };
+
+    if (!editId) payload.author = myName;
 
     const { error } = editId
       ? await supabase.from("works").update(payload).eq("id", editId)
@@ -87,7 +110,7 @@ function NewWorkForm() {
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title={editId ? "작품 수정" : "새로운 작품 기록"} />
 
         <div className={`${cardStyle} mt-4 p-5`}>
@@ -104,7 +127,6 @@ function NewWorkForm() {
           />
 
           <p className="mb-1 text-xs font-semibold text-card-muted">포스터 / 표지</p>
-
           <div className="mb-2 flex gap-2">
             <button
               onClick={() => setCoverMode("upload")}
@@ -148,7 +170,6 @@ function NewWorkForm() {
                 className="w-full bg-transparent text-center text-xs text-card-muted outline-none"
               />
             )}
-
             {uploading && <p className="mt-2 text-xs text-card-muted">업로드 중...</p>}
           </div>
 
@@ -166,7 +187,9 @@ function NewWorkForm() {
             ))}
           </div>
 
-          <p className="mb-1 text-xs font-semibold text-card-muted">별점 {rating.toFixed(1)}</p>
+          <p className="mb-1 text-xs font-semibold text-card-muted">
+            내 별점 {myName ? `(${myName})` : ""} {rating.toFixed(1)}
+          </p>
           <input
             type="range"
             min={0}
@@ -177,7 +200,7 @@ function NewWorkForm() {
             className="mb-4 w-full accent-primary"
           />
 
-          <p className="mb-1 text-xs font-semibold text-card-muted">한 줄 평</p>
+          <p className="mb-1 text-xs font-semibold text-card-muted">내 한 줄 평</p>
           <input
             value={review}
             onChange={(e) => setReview(e.target.value)}
@@ -194,6 +217,7 @@ function NewWorkForm() {
     </main>
   );
 }
+
 export default function NewWorkPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>

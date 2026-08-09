@@ -44,13 +44,14 @@ function NewMusicForm() {
   }, [editId]);
 
   async function saveMusic() {
-    if (!title.trim()) return;
+  if (!title.trim()) return;
 
-    const payload = { title, artist, youtube_url: youtubeUrl, review };
+  const payload: any = { title, artist, youtube_url: youtubeUrl, review };
+  if (!editId) payload.author = localStorage.getItem("myName");
 
-    const { error } = editId
-      ? await supabase.from("music").update(payload).eq("id", editId)
-      : await supabase.from("music").insert(payload);
+  const { error } = editId
+    ? await supabase.from("music").update(payload).eq("id", editId)
+    : await supabase.from("music").insert(payload);
 
     if (error) {
       console.log("저장 실패", error.message);
@@ -62,7 +63,7 @@ function NewMusicForm() {
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title={editId ? "음악 수정" : "새로운 음악 기록"} />
 
         <div className={`${cardStyle} mt-4 p-5`}>
@@ -85,6 +86,7 @@ function NewMusicForm() {
             placeholder="가수 이름을 입력해 주세요"
             className="mb-4 w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-card outline-none"
           />
+          
 
           <p className="mb-1 text-xs font-semibold text-card-muted">YouTube URL</p>
           <input

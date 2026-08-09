@@ -60,7 +60,7 @@ export default function DiaryPage() {
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl">
         <BackHeader title="교환 일기" />
         <p className="mb-4 text-sm text-text-muted">우리 둘의 이야기를 모아요.</p>
 

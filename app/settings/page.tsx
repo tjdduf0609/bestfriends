@@ -114,7 +114,7 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-bg p-6 pb-24">
-      <div className="mx-auto max-w-md space-y-4">
+      <div className="mx-auto max-w-md md:max-w-2xl lg:max-w-4xl md:max-w-2xl lg:max-w-4xl space-y-4">
         <BackHeader title="설정" />
 
         <div className={`${cardStyle} flex items-center gap-3 p-5`}>

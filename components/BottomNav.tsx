@@ -7,7 +7,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex max-w-md justify-around bg-white px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
+    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex max-w-md md:max-w-2xl lg:max-w-4xl justify-around bg-white px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
       <Link href="/">
         <NavItem icon={Home} text="홈" active={pathname === "/"} />
       </Link>
