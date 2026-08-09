@@ -14,9 +14,11 @@ import {
 import { ko } from "date-fns/locale";
 import { supabase } from "@/lib/supabase";
 import { BackHeader } from "@/components/BackHeader";
-import { Heart, Star, BookOpen, Clapperboard, Music, Plus } from "lucide-react";
+import { Heart, Star, BookOpen, Clapperboard, Music, Plus, } from "lucide-react";
+import { pillButtonStyle } from "@/lib/pillButtonStyle";
+import BottomNav from "@/components/BottomNav";
 
-const cardStyle = "rounded-3xl bg-surface shadow-sm";
+const cardStyle = "rounded-3xl bg-white shadow-sm";
 type RepeatType = "none" | "weekly" | "yearly";
 
 export default function CalendarPage() {
@@ -33,6 +35,21 @@ export default function CalendarPage() {
   const [formRepeat, setFormRepeat] = useState<RepeatType>("yearly");
   const [editingItem, setEditingItem] = useState<{ table: "anniversaries" | "events"; id: string } | null>(null);
 
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const dateParam = params.get("date");
+
+  if (!dateParam) return;
+
+  const targetDate = new Date(`${dateParam}T00:00:00`);
+
+  if (isNaN(targetDate.getTime())) return;
+
+  setCurrentMonth(targetDate);
+  setSelectedDate(targetDate);
+}, []);
+
   useEffect(() => {
     loadRecords();
   }, [currentMonth]);
@@ -43,11 +60,13 @@ export default function CalendarPage() {
     const { data: music } = await supabase.from("music").select("*");
     const { data: anniversaryData } = await supabase.from("anniversaries").select("*");
     const { data: eventData } = await supabase.from("events").select("*");
-
+    
     setAnniversaries(anniversaryData ?? []);
     setEvents(eventData ?? []);
 
     const year = currentMonth.getFullYear();
+
+
 
     const resolveOccurrences = (item: any): Date[] => {
       const original = new Date(item.date);
@@ -152,92 +171,88 @@ export default function CalendarPage() {
         <BackHeader title="달력" />
 
         <button
-          onClick={() => (showForm ? resetForm() : setShowForm(true))}
-          className="mb-3 ml-auto flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold"
-          style={{ backgroundColor: "var(--color-primary)", color: "#ffffff" }}
-        >
-          {showForm ? "닫기" : (<><Plus className="h-3.5 w-3.5" /> 추가</>)}
-        </button>
+  onClick={() => (showForm ? resetForm() : setShowForm(true))}
+  style={pillButtonStyle(true)}
+  className="mb-3 ml-auto flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold"
+>
+  {showForm ? "닫기" : (<><Plus className="h-3.5 w-3.5" /> 추가</>)}
+</button>
 
         {showForm && (
           <div className={`${cardStyle} mb-4 space-y-3 p-5`}>
             <div className="flex gap-2">
-              <button
-                onClick={() => setFormKind("anniversary")}
-                className={`flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold ${
-                  formKind === "anniversary" ? "bg-primary text-white" : "bg-primary-soft text-text"
-                }`}
-              >
-                <Heart className="h-4 w-4" fill={formKind === "anniversary" ? "currentColor" : "none"} /> 기념일
-              </button>
-              <button
-                onClick={() => setFormKind("event")}
-                className={`flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold ${
-                  formKind === "event" ? "bg-primary text-white" : "bg-primary-soft text-text"
-                }`}
-              >
-                <Star className="h-4 w-4" fill={formKind === "event" ? "currentColor" : "none"} /> 일정
-              </button>
-            </div>
+  <button
+    onClick={() => setFormKind("anniversary")}
+    style={pillButtonStyle(formKind === "anniversary")}
+    className="flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold"
+  >
+    <Heart className="h-4 w-4" fill={formKind === "anniversary" ? "currentColor" : "none"} /> 기념일
+  </button>
+  <button
+    onClick={() => setFormKind("event")}
+    style={pillButtonStyle(formKind === "event")}
+    className="flex flex-1 items-center justify-center gap-1 rounded-full py-2 text-sm font-bold"
+  >
+    <Star className="h-4 w-4" fill={formKind === "event" ? "currentColor" : "none"} /> 일정
+  </button>
+</div>
 
             <input
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
               placeholder={formKind === "anniversary" ? "예: 100일, 1주년" : "예: OO 생일, 데이트"}
-              className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+              className="w-full rounded-xl bg-white-soft/40 p-3 text-sm text-card-muted"
             />
 
             <input
               type="date"
               value={formDate}
               onChange={(e) => setFormDate(e.target.value)}
-              className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+              className="w-full rounded-xl bg-white-soft/40 p-3 text-sm text-card-muted"
             />
 
             <div className="flex gap-2">
-              {(["none", "weekly", "yearly"] as RepeatType[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setFormRepeat(t)}
-                  className={`flex-1 rounded-full py-2 text-xs font-bold ${
-                    formRepeat === t ? "bg-primary text-white" : "bg-primary-soft text-text"
-                  }`}
-                >
-                  {repeatLabel(t)}
-                </button>
-              ))}
-            </div>
+  {(["none", "weekly", "yearly"] as RepeatType[]).map((t) => (
+    <button
+      key={t}
+      onClick={() => setFormRepeat(t)}
+      style={pillButtonStyle(formRepeat === t)}
+      className="flex-1 rounded-full py-2 text-xs font-bold"
+    >
+      {repeatLabel(t)}
+    </button>
+  ))}
+</div>
 
             <button
-              onClick={saveItem}
-              className="w-full rounded-xl py-3 font-bold"
-              style={{ backgroundColor: "var(--color-primary)", color: "#ffffff" }}
-            >
-              {editingItem ? "수정 저장하기" : "등록하기"}
-            </button>
+  onClick={saveItem}
+  style={pillButtonStyle(true)}
+  className="w-full rounded-xl py-3 font-bold"
+>
+  {editingItem ? "수정 저장하기" : "등록하기"}
+</button>
           </div>
         )}
 
         <div className={`${cardStyle} p-5`}>
           <div className="mb-4 flex items-center justify-between">
-            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="text-text">◀</button>
-            <h2 className="font-bold text-text">{format(currentMonth, "yyyy년 M월", { locale: ko })}</h2>
-            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="text-text">▶</button>
+            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="text-card-muted">◀</button>
+            <h2 className="font-bold text-card-muted">{format(currentMonth, "yyyy년 M월", { locale: ko })}</h2>
+            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="text-card-muted">▶</button>
           </div>
 
           <div className="grid grid-cols-7 gap-2 text-center">
             {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-              <div key={d} className="text-xs text-text-muted">{d}</div>
+              <div key={d} className="text-xs text-card-muted">{d}</div>
             ))}
 
             {days.map((day) => (
               <button
-                key={day.toString()}
-                onClick={() => setSelectedDate(day)}
-                className={`relative h-10 rounded-full text-sm ${
-                  selectedDate && isSameDay(day, selectedDate) ? "bg-primary text-white" : "text-text"
-                }`}
-              >
+  key={day.toString()}
+  onClick={() => setSelectedDate(day)}
+  style={selectedDate && isSameDay(day, selectedDate) ? pillButtonStyle(true) : undefined}
+  className="relative h-10 rounded-full text-sm text-card-muted"
+>
                 {format(day, "d")}
                 {anniversaryOnDay(day) && (
                   <Heart className="absolute top-0.5 left-1/2 h-2 w-2 -translate-x-1/2 text-primary" fill="currentColor" />
@@ -258,7 +273,7 @@ export default function CalendarPage() {
             {selectedRecords.map((record) => (
               <div
                 key={`${record.type}-${record.id}-${record.occursOn}`}
-                className={`${cardStyle} flex items-center gap-2 p-4 text-sm text-text`}
+                className={`${cardStyle} flex items-center gap-2 p-4 text-sm text-card-muted`}
               >
                 {record.type === "diary" && <><BookOpen className="h-4 w-4 text-primary" /> {record.title}</>}
                 {record.type === "work" && <><Clapperboard className="h-4 w-4 text-primary" /> {record.title}</>}
@@ -271,23 +286,23 @@ export default function CalendarPage() {
         )}
 
         <section className="mt-8">
-          <h2 className="mb-3 font-bold text-text">기념일</h2>
+          <h2 className="mb-3 font-bold text-card-muted">기념일</h2>
           <div className="space-y-2">
             {anniversaries.length === 0 ? (
-              <p className="text-sm text-text-muted">등록된 기념일이 없어요.</p>
+              <p className="text-sm text-card-muted">등록된 기념일이 없어요.</p>
             ) : (
               anniversaries.map((item) => (
                 <div key={item.id} className={`${cardStyle} flex items-center justify-between p-4`}>
                   <button onClick={() => startEdit("anniversaries", item)} className="flex flex-1 items-center gap-3 text-left">
                     <Heart className="h-4 w-4 text-primary" fill="currentColor" />
                     <div>
-                      <p className="text-sm font-bold text-text">{item.title}</p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-sm font-bold text-card-muted">{item.title}</p>
+                      <p className="text-xs text-card-muted">
                         {item.date} · {repeatLabel(item.repeat_type ?? "none")}
                       </p>
                     </div>
                   </button>
-                  <button onClick={() => deleteItem("anniversaries", item.id)} className="text-xs text-text-muted">삭제</button>
+                  <button onClick={() => deleteItem("anniversaries", item.id)} className="text-xs text-card-muted">삭제</button>
                 </div>
               ))
             )}
@@ -295,29 +310,30 @@ export default function CalendarPage() {
         </section>
 
         <section className="mt-6">
-          <h2 className="mb-3 font-bold text-text">일정</h2>
+          <h2 className="mb-3 font-bold text-card-muted">일정</h2>
           <div className="space-y-2">
             {events.length === 0 ? (
-              <p className="text-sm text-text-muted">등록된 일정이 없어요.</p>
+              <p className="text-sm text-card-muted">등록된 일정이 없어요.</p>
             ) : (
               events.map((item) => (
                 <div key={item.id} className={`${cardStyle} flex items-center justify-between p-4`}>
                   <button onClick={() => startEdit("events", item)} className="flex flex-1 items-center gap-3 text-left">
                     <Star className="h-4 w-4 text-primary" fill="currentColor" />
                     <div>
-                      <p className="text-sm font-bold text-text">{item.title}</p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-sm font-bold text-card-muted">{item.title}</p>
+                      <p className="text-xs text-card-muted">
                         {item.date} · {repeatLabel(item.repeat_type ?? "none")}
                       </p>
                     </div>
                   </button>
-                  <button onClick={() => deleteItem("events", item.id)} className="text-xs text-text-muted">삭제</button>
+                  <button onClick={() => deleteItem("events", item.id)} className="text-xs text-card-muted">삭제</button>
                 </div>
               ))
             )}
           </div>
         </section>
       </div>
+<BottomNav />
     </main>
   );
 }

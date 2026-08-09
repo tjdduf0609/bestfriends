@@ -12,7 +12,7 @@ export default function Textarea({ className = "", ...props }: TextareaProps) {
         border-border
         bg-surface
         p-4
-        text-text
+        text-card-muted
         outline-none
         focus:ring-2
         focus:ring-primary-soft

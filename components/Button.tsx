@@ -23,7 +23,7 @@ export default function Button({
         ${
           variant === "primary"
             ? "bg-primary text-white"
-            : "border border-border bg-surface text-text"
+            : "border border-border bg-surface text-card-muted"
         }
       `}
     >

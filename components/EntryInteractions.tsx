@@ -11,13 +11,21 @@ interface Comment {
   created_at: string;
 }
 
-export function DiaryInteractions({
-  diaryId,
+type EntryType = "diary" | "work" | "music";
+
+export function EntryInteractions({
+  type,
+  entryId,
   myName,
 }: {
-  diaryId: string;
+  type: EntryType;
+  entryId: string;
   myName: string | null;
 }) {
+  const likesTable = `${type}_likes`;
+  const commentsTable = `${type}_comments`;
+  const idColumn = `${type}_id`;
+
   const [likeCount, setLikeCount] = useState(0);
   const [likedByMe, setLikedByMe] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -25,39 +33,32 @@ export function DiaryInteractions({
   const [newComment, setNewComment] = useState("");
 
   const loadLikes = async () => {
-    const { data, error } = await supabase
-      .from("diary_likes")
-      .select("liker_name")
-      .eq("diary_id", diaryId);
-
+    const { data, error } = await supabase.from(likesTable).select("liker_name").eq(idColumn, entryId);
     if (error) {
-      console.log("하트 불러오기 실패", error.message);
+      console.log("좋아요 불러오기 실패", error.message);
       return;
     }
-
     setLikeCount(data?.length ?? 0);
-    setLikedByMe(!!data?.find((l) => l.liker_name === myName));
+    setLikedByMe(!!data?.find((l: any) => l.liker_name === myName));
   };
 
   const loadComments = async () => {
     const { data, error } = await supabase
-      .from("diary_comments")
+      .from(commentsTable)
       .select("*")
-      .eq("diary_id", diaryId)
+      .eq(idColumn, entryId)
       .order("created_at", { ascending: true });
-
     if (error) {
       console.log("댓글 불러오기 실패", error.message);
       return;
     }
-
     setComments(data ?? []);
   };
 
   useEffect(() => {
     loadLikes();
     loadComments();
-  }, [diaryId]);
+  }, [entryId]);
 
   const toggleLike = async () => {
     if (!myName) {
@@ -67,22 +68,18 @@ export function DiaryInteractions({
 
     if (likedByMe) {
       const { error } = await supabase
-        .from("diary_likes")
+        .from(likesTable)
         .delete()
-        .eq("diary_id", diaryId)
+        .eq(idColumn, entryId)
         .eq("liker_name", myName);
-
       if (error) {
-        console.log("하트 취소 실패", error.message);
+        console.log("좋아요 취소 실패", error.message);
         return;
       }
     } else {
-      const { error } = await supabase
-        .from("diary_likes")
-        .insert({ diary_id: diaryId, liker_name: myName });
-
+      const { error } = await supabase.from(likesTable).insert({ [idColumn]: entryId, liker_name: myName });
       if (error) {
-        console.log("하트 실패", error.message);
+        console.log("좋아요 실패", error.message);
         return;
       }
     }
@@ -97,11 +94,9 @@ export function DiaryInteractions({
     }
     if (!newComment.trim()) return;
 
-    const { error } = await supabase.from("diary_comments").insert({
-      diary_id: diaryId,
-      author: myName,
-      content: newComment.trim(),
-    });
+    const { error } = await supabase
+      .from(commentsTable)
+      .insert({ [idColumn]: entryId, author: myName, content: newComment.trim() });
 
     if (error) {
       console.log("댓글 저장 실패", error.message);
@@ -113,7 +108,7 @@ export function DiaryInteractions({
   };
 
   const deleteComment = async (id: string) => {
-    const { error } = await supabase.from("diary_comments").delete().eq("id", id);
+    const { error } = await supabase.from(commentsTable).delete().eq("id", id);
     if (error) {
       console.log("댓글 삭제 실패", error.message);
       return;
@@ -144,13 +139,10 @@ export function DiaryInteractions({
       {showComments && (
         <div className="mt-3 space-y-2">
           {comments.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-start justify-between rounded-lg bg-primary-soft/40 px-3 py-2"
-            >
+            <div key={c.id} className="flex items-start justify-between rounded-lg bg-primary-soft/40 px-3 py-2">
               <div>
                 <p className="text-xs font-bold text-card-muted">{c.author}</p>
-                <p className="text-sm text-card-muted">{c.content}</p>
+                <p className="text-sm text-card">{c.content}</p>
               </div>
               {c.author === myName && (
                 <button onClick={() => deleteComment(c.id)} className="text-xs text-card-muted">
@@ -166,12 +158,9 @@ export function DiaryInteractions({
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitComment()}
               placeholder="댓글을 남겨보세요"
-              className="flex-1 rounded-lg bg-primary-soft/40 px-3 py-2 text-sm text-card-muted outline-none"
+              className="flex-1 rounded-lg bg-primary-soft/40 px-3 py-2 text-sm text-card outline-none"
             />
-            <button
-              onClick={submitComment}
-              className="rounded-lg bg-primary px-4 py-2 text-sm text-white"
-            >
+            <button onClick={submitComment} className="rounded-lg bg-primary px-4 py-2 text-sm text-card outline-none">
               등록
             </button>
           </div>

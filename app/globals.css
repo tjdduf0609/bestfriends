@@ -23,6 +23,9 @@
   --color-text: #2B2126;
   --color-text-muted: #8A7A80;
   --color-border: #F5DFE4;
+  /* ▼ 추가: 흰 카드 전용 고정 글씨색 (다크모드에서도 안 바뀜) */
+  --color-card-text: #2B2126;
+  --color-card-text-muted: #8A7A80;
 }
 [data-theme="rosy"].dark {
   --color-primary: #FF89A6;
@@ -32,6 +35,7 @@
   --color-text: #FBEFF2;
   --color-text-muted: #B79AA2;
   --color-border: #3D2B30;
+  /* --color-card-text는 여기서 재정의하지 않음 → 라이트 값 그대로 유지됨 */
 }
 
 /* ===== 라벤더 ===== */
@@ -43,6 +47,8 @@
   --color-text: #241F33;
   --color-text-muted: #837AA0;
   --color-border: #E4E0F5;
+  --color-card-text: #241F33;
+--color-card-text-muted: #837AA0;
 }
 [data-theme="lavender"].dark {
   --color-primary: #A79AEF;
@@ -63,6 +69,8 @@
   --color-text: #1E2B29;
   --color-text-muted: #6F8B87;
   --color-border: #D8EFEC;
+  --color-card-text: #1E2B29;
+--color-card-text-muted: #6F8B87;
 }
 [data-theme="mint"].dark {
   --color-primary: #4FDDCE;
@@ -83,6 +91,8 @@
   --color-text: #2E2420;
   --color-text-muted: #8F7A6E;
   --color-border: #F5E2D6;
+  --color-card-text: #2E2420;
+--color-card-text-muted: #8F7A6E;
 }
 [data-theme="peach"].dark {
   --color-primary: #FFAB82;
@@ -103,6 +113,8 @@
   --color-text: #1F2733;
   --color-text-muted: #6E8199;
   --color-border: #D9E9F7;
+  --color-card-text: #1F2733;
+--color-card-text-muted: #6E8199;
 }
 [data-theme="sky"].dark {
   --color-primary: #74C0FF;
@@ -118,4 +130,10 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   transition: background-color 0.2s ease, color 0.2s ease;
+  .text-card {
+  color: var(--color-card-text);
+}
+.text-card-muted {
+  color: var(--color-card-text-muted);
+}
 }

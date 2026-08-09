@@ -10,7 +10,7 @@ export default function Input({ className = "", ...props }: InputProps) {
         border-border
         bg-surface
         p-4
-        text-text
+        text-card-muted
         outline-none
         focus:ring-2
         focus:ring-primary-soft

@@ -7,7 +7,7 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex max-w-md justify-around border-t border-border bg-white px-4 py-3 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 mx-auto flex max-w-md justify-around bg-white px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
       <Link href="/">
         <NavItem icon={Home} text="홈" active={pathname === "/"} />
       </Link>
@@ -21,7 +21,7 @@ export default function BottomNav() {
         <NavItem icon={Music} text="음악" active={pathname.startsWith("/music")} />
       </Link>
       <Link href="/calendar">
-        <NavItem icon={Calendar} text="기록" active={pathname.startsWith("/calendar")} />
+        <NavItem icon={Calendar} text="달력" active={pathname.startsWith("/calendar")} />
       </Link>
       <Link href="/settings">
         <NavItem icon={Settings} text="설정" active={pathname.startsWith("/settings")} />
@@ -42,7 +42,7 @@ function NavItem({
   return (
     <button
       className={`flex flex-col items-center gap-0.5 text-xs transition ${
-        active ? "text-primary" : "text-text-muted"
+        active ? "text-primary" : "text-card-muted"
       }`}
     >
       <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />

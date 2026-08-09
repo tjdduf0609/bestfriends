@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { BackHeader } from "@/components/BackHeader";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
-
+import { pillButtonStyle } from "@/lib/pillButtonStyle";
+import BottomNav from "@/components/BottomNav";
 
 const cardStyle = "rounded-3xl bg-white shadow-sm";
 const gradientButton =
@@ -16,7 +17,7 @@ const gradientStyle = {
 
 function NumberBadge({ n }: { n: number }) {
   return (
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-card-muted">
       {n}
     </span>
   );
@@ -38,9 +39,8 @@ function WhoAmISelector({ name1, name2 }: { name1: string; name2: string }) {
         <button
           key={`${name}-${index}`}
           onClick={() => handleSelect(name)}
-          className={`rounded-full px-4 py-2 text-xs font-medium transition ${
-            selected === name ? "bg-primary text-white" : "bg-primary-soft text-text"
-          }`}
+          style={pillButtonStyle(selected === name)}
+          className="rounded-full px-4 py-2 text-xs font-medium transition"
         >
           나는 {name}이에요
         </button>
@@ -119,30 +119,30 @@ export default function SettingsPage() {
 
         <div className={`${cardStyle} flex items-center gap-3 p-5`}>
           <NumberBadge n={1} />
-          <p className="w-24 shrink-0 text-sm font-bold text-text">커플 이름 설정</p>
+          <p className="w-24 shrink-0 text-sm font-bold text-card-muted">커플 이름 설정</p>
           <input
             value={coupleName}
             onChange={(e) => setCoupleName(e.target.value)}
-            className="flex-1 rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+            className="flex-1 rounded-xl bg-primary-soft/40 p-3 text-sm text-card-muted outline-none"
           />
         </div>
 
         <div className={`${cardStyle} p-5`}>
           <div className="mb-3 flex items-center gap-3">
             <NumberBadge n={2} />
-            <p className="text-sm font-bold text-text">첫 번째 사람 설정</p>
+            <p className="text-sm font-bold text-card-muted">첫 번째 사람 설정</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <p className="mb-1 text-xs text-text-muted">이름</p>
+              <p className="mb-1 text-xs text-card-muted">이름</p>
               <input
                 value={person1}
                 onChange={(e) => setPerson1(e.target.value)}
-                className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+                className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-card-muted outline-none"
               />
             </div>
             <div className="text-center">
-              <p className="mb-1 text-xs text-text-muted">프로필 사진</p>
+              <p className="mb-1 text-xs text-card-muted">프로필 사진</p>
               <label className="block h-14 w-14 cursor-pointer overflow-hidden rounded-full bg-primary-soft">
                 {person1Image ? (
                   <img src={person1Image} className="h-full w-full object-cover" />
@@ -166,19 +166,19 @@ export default function SettingsPage() {
         <div className={`${cardStyle} p-5`}>
           <div className="mb-3 flex items-center gap-3">
             <NumberBadge n={3} />
-            <p className="text-sm font-bold text-text">두 번째 사람 설정</p>
+            <p className="text-sm font-bold text-card-muted">두 번째 사람 설정</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <p className="mb-1 text-xs text-text-muted">이름</p>
+              <p className="mb-1 text-xs text-card-muted">이름</p>
               <input
                 value={person2}
                 onChange={(e) => setPerson2(e.target.value)}
-                className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+                className="w-full rounded-xl bg-primary-soft/40 p-3 text-sm text-card-muted outline-none"
               />
             </div>
             <div className="text-center">
-              <p className="mb-1 text-xs text-text-muted">프로필 사진</p>
+              <p className="mb-1 text-xs text-card-muted">프로필 사진</p>
               <label className="block h-14 w-14 cursor-pointer overflow-hidden rounded-full bg-primary-soft">
                 {person2Image ? (
                   <img src={person2Image} className="h-full w-full object-cover" />
@@ -203,12 +203,13 @@ export default function SettingsPage() {
 
         <div className={`${cardStyle} flex items-center gap-3 p-5`}>
           <NumberBadge n={4} />
-          <p className="w-24 shrink-0 text-sm font-bold text-text">함께한 시간 설정</p>
+          
+          <p className="w-24 shrink-0 text-sm font-bold text-card-muted">함께한 시간 설정</p>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="flex-1 rounded-xl bg-primary-soft/40 p-3 text-sm text-text outline-none"
+            className="flex-1 rounded-xl bg-primary-soft/40 p-3 text-sm text-card-muted outline-none"
           />
           {daysSinceStart !== null && (
             <span className="whitespace-nowrap text-xs font-bold text-primary">
@@ -220,7 +221,7 @@ export default function SettingsPage() {
         <div className={`${cardStyle} p-5`}>
           <div className="mb-3 flex items-center gap-3">
             <NumberBadge n={5} />
-            <p className="text-sm font-bold text-text">테마 색상 설정</p>
+            <p className="text-sm font-bold text-card-muted">테마 색상 설정</p>
           </div>
           <ThemeSwitcher />
         </div>
@@ -229,6 +230,7 @@ export default function SettingsPage() {
           저장하기
         </button>
       </div>
+<BottomNav />
     </main>
   );
 }
